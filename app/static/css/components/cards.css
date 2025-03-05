@@ -1,0 +1,108 @@
+.card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+    padding: 1rem;
+    color: var(--card-text-color);
+}
+
+.card .card-body {
+    background-color: var(--card-bg);
+    color: var(--card-text-color);
+    border-radius: 8px;
+    white-space: normal;
+    padding: 1.25rem;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Card text colors */
+.card .card-title,
+.card .card-text,
+.card .bi,
+.card .text-muted {
+    color: var(--card-text-color);
+}
+
+.card .badge.bg-light {
+    background-color: white;
+    color: #8a8a8a;
+}
+
+/* Tool badge colors - Teal palette */
+.badge.bg-command {
+    background-color: #009999;
+    color: white;
+}
+
+.badge.bg-option {
+    background-color: #33adad;
+    color: white;
+}
+
+.badge.bg-decorator {
+    background-color: #66c2c2;
+    color: white;
+}
+
+.card .btn text,
+.card button text {
+    color: var(--card-text-color);
+}
+
+/* Card title responsive styles */
+.card .card-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    word-break: break-word;
+    padding-top: 1.5rem; /* Increased space for buttons */
+    padding-right: 1rem;
+}
+
+/* Card action buttons container */
+.card .action-buttons {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    z-index: 2;
+    max-width: calc(100% - 2rem); /* Prevent buttons from overflowing */
+}
+
+/* Admin badge */
+.admin-icon {
+    color: #FFD700;
+    filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.5));
+    animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+    0%, 100% {
+        filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.5));
+    }
+    50% {
+        filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
+    }
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 576px) {
+    .card .card-title {
+        font-size: 1rem;
+        padding-top: 2.5rem; /* Even more space for wrapped buttons */
+    }
+    
+    .card .action-buttons {
+        gap: 0.25rem;
+    }
+    
+    .card .action-buttons .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+}

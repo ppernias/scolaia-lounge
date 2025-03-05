@@ -1,0 +1,93 @@
+<nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container-fluid h-100 d-flex align-items-center">
+        <a class="navbar-brand fs-4" href="/">
+            <span class="brand-text">ScolaIA</span> <span class="brand-surname" style="font-family: 'Allura', cursive !important; color: #fa0000 !important; font-size: 3rem !important;">Lounge</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                {% if current_user %}
+                <li class="nav-item d-lg-none">
+                    <a class="nav-link" href="/assistants">
+                        <i class="bi bi-robot"></i> My Assistants
+                    </a>
+                </li>
+                <li class="nav-item d-lg-none">
+                    <a class="nav-link" href="/collection">
+                        <i class="bi bi-bookmark-star"></i> My Collection
+                    </a>
+                </li>
+                <li class="nav-item d-lg-none">
+                    <a class="nav-link" href="/profile">
+                        <i class="bi bi-person"></i> My Profile
+                    </a>
+                </li>
+                {% if current_user.is_admin %}
+                <li class="nav-item d-lg-none">
+                    <a class="nav-link" href="/settings">
+                        <i class="bi bi-gear"></i> Settings
+                    </a>
+                </li>
+                <li class="nav-item d-lg-none">
+                    <a class="nav-link" href="/users">
+                        <i class="bi bi-people"></i> Users
+                    </a>
+                </li>
+                {% endif %}
+                <li class="nav-item d-lg-none">
+                    <a class="nav-link text-danger" href="#" onclick="handleLogout()">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+            <div class="d-flex align-items-center">
+                <a class="nav-link featured-nav-link me-3" href="/explore">
+                    <i class="bi bi-collection"></i>
+                    <span>Community Hub</span>
+                </a>
+                {% if current_user %}
+                    <div class="dropdown d-none d-lg-block">
+                        <button class="nav-link featured-nav-link dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle {% if current_user.is_admin %}admin-icon{% endif %}"></i>
+                            <span>{{ current_user.full_name }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            {% if current_user.is_admin %}
+                                <li><a class="dropdown-item" href="/settings">
+                                    <i class="bi bi-gear"></i> Settings
+                                </a></li>
+                                <li><a class="dropdown-item" href="/users">
+                                    <i class="bi bi-people"></i> Users
+                                </a></li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="/assistants">
+                                <i class="bi bi-robot"></i> My Assistants
+                            </a></li>
+                            <li><a class="dropdown-item" href="/collection">
+                                <i class="bi bi-bookmark-star"></i> My Collection
+                            </a></li>
+                            <li><a class="dropdown-item" href="/profile">
+                                <i class="bi bi-person"></i> My Profile
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="handleLogout()">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a></li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <a href="/auth/login" class="btn navbar-btn navbar-btn-outline">Login</a>
+                    <a href="/auth/register" class="btn navbar-btn navbar-btn-filled">Sign Up</a>
+                {% endif %}
+            </div>
+            <div class="theme-toggle">
+                <button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()" id="theme-toggle-btn">
+                    <i class="bi bi-sun-fill" id="theme-icon"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</nav> 

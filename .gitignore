@@ -1,0 +1,119 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+.env/
+
+# Database
+*.db
+*.sqlite3
+*.sqlite
+*.sql
+*.psql
+*.postgresql
+*.mysql
+
+# Environment variables and secrets
+.env
+.env.*
+*.env
+config.ini
+secrets.*
+credentials.*
+api_keys.*
+*.key
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.bak
+*.tmp
+*~
+
+# OS specific files
+.DS_Store
+Thumbs.db
+*.log
+.directory
+desktop.ini
+
+# Testing and coverage
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Documentation
+docs/_build/
+site/
+
+# Logs and temporary files
+logs/
+*.log
+log/
+tmp/
+temp/
+.temp/
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Deployment and production
+*.pem
+*.crt
+*.cert
+*.ca-bundle
+.vercel
+.netlify
+
+# Local development
+local_settings.py
+docker-compose.override.yml
+docker-compose.*.yml
+!docker-compose.yml
+scripts/
+
+# Cache
+.cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+revert.sh
+revert.sh

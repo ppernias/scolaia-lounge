@@ -1,0 +1,35 @@
+:root {
+    --logo-color: #008080;
+    --titles-color: #586994;
+    --card-bg: #7d869c;
+    --navbar-height: 60px;
+    --btn-spacing: 1rem;
+    --text-color: #212529; /* Color oscuro para el texto */
+    --card-text-color: #212529; /* Color oscuro para el texto en las tarjetas */
+}
+
+[data-bs-theme="dark"] {
+    /* Usar texto claro en modo oscuro para mejor visibilidad */
+    --text-color: #f8f9fa;
+    
+    /* Asegurarse de que las cards tengan fondo claro y texto oscuro */
+    --card-bg: #ffffff;
+    --card-text-color: #212529;
+}
+
+/* Theme variations */
+/*  teal theme */
+/*
+:root {
+    --titles-color: #008080;
+    --card-bg: #95b0ad;
+}
+*/
+
+/*  green theme */
+/*
+:root {
+    --titles-color: #4f772D;
+    --card-bg: #90a955;
+}
+*/

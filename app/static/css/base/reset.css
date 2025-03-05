@@ -1,0 +1,25 @@
+body {
+    padding-top: var(--navbar-height);
+}
+
+.workarea {
+    padding-top: calc(var(--navbar-height) - 60px);
+}
+
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Spacing utilities */
+.mb-4 {
+    margin-bottom: 1rem !important;
+}
+
+.card .mb-2 {
+    margin-bottom: 0.5rem !important;
+}
+
+.card .mt-5 {
+    margin-top: 2rem !important;
+}

@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5" data-current-user="{{ current_user.id }}">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            <h2 class="font-audiowide mb-4">User Management</h2>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form class="mb-4" method="GET">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="search" value="{{ search or '' }}" placeholder="Search users...">
+                                    <select class="form-select" name="filter_by" style="max-width: 150px;">
+                                        <option value="username" {% if filter_by == 'username' %}selected{% endif %}>Username</option>
+                                        <option value="role" {% if filter_by == 'role' %}selected{% endif %}>Role</option>
+                                        <option value="organization" {% if filter_by == 'organization' %}selected{% endif %}>Organization</option>
+                                    </select>
+                                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+                                    {% if search %}<a href="?" class="btn btn-outline-secondary"><i class="bi bi-x-circle"></i></a>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="sort" value="{{ sort }}">
+                        <input type="hidden" name="order" value="{{ order }}">
+                        <input type="hidden" name="page" value="1">
+                    </form>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th><a href="?sort=id&order={{ 'desc' if sort == 'id' and order == 'asc' else 'asc' }}{% if search %}&search={{ search }}&filter_by={{ filter_by }}{% endif %}" class="text-dark text-decoration-none">
+                                        ID {% if sort == 'id' %}<i class="bi bi-arrow-{{ 'up' if order == 'asc' else 'down' }}"></i>{% endif %}
+                                    </a></th>
+                                    <th><a href="?sort=username&order={{ 'desc' if sort == 'username' and order == 'asc' else 'asc' }}{% if search %}&search={{ search }}&filter_by={{ filter_by }}{% endif %}" class="text-dark text-decoration-none">
+                                        Username {% if sort == 'username' %}<i class="bi bi-arrow-{{ 'up' if order == 'asc' else 'down' }}"></i>{% endif %}
+                                    </a></th>
+                                    <th><a href="?sort=email&order={{ 'desc' if sort == 'email' and order == 'asc' else 'asc' }}{% if search %}&search={{ search }}&filter_by={{ filter_by }}{% endif %}" class="text-dark text-decoration-none">
+                                        Email {% if sort == 'email' %}<i class="bi bi-arrow-{{ 'up' if order == 'asc' else 'down' }}"></i>{% endif %}
+                                    </a></th>
+                                    <th><a href="?sort=full_name&order={{ 'desc' if sort == 'full_name' and order == 'asc' else 'asc' }}{% if search %}&search={{ search }}&filter_by={{ filter_by }}{% endif %}" class="text-dark text-decoration-none">
+                                        Full Name {% if sort == 'full_name' %}<i class="bi bi-arrow-{{ 'up' if order == 'asc' else 'down' }}"></i>{% endif %}
+                                    </a></th>
+                                    <th><a href="?sort=role&order={{ 'desc' if sort == 'role' and order == 'asc' else 'asc' }}{% if search %}&search={{ search }}&filter_by={{ filter_by }}{% endif %}" class="text-dark text-decoration-none">
+                                        Role {% if sort == 'role' %}<i class="bi bi-arrow-{{ 'up' if order == 'asc' else 'down' }}"></i>{% endif %}
+                                    </a></th>
+                                    <th><a href="?sort=organization&order={{ 'desc' if sort == 'organization' and order == 'asc' else 'asc' }}{% if search %}&search={{ search }}&filter_by={{ filter_by }}{% endif %}" class="text-dark text-decoration-none">
+                                        Organization {% if sort == 'organization' %}<i class="bi bi-arrow-{{ 'up' if order == 'asc' else 'down' }}"></i>{% endif %}
+                                    </a></th>
+                                    <th><a href="?sort=is_admin&order={{ 'desc' if sort == 'is_admin' and order == 'asc' else 'asc' }}{% if search %}&search={{ search }}&filter_by={{ filter_by }}{% endif %}" class="text-dark text-decoration-none">
+                                        Admin {% if sort == 'is_admin' %}<i class="bi bi-arrow-{{ 'up' if order == 'asc' else 'down' }}"></i>{% endif %}
+                                    </a></th>
+                                    <th><a href="?sort=created_at&order={{ 'desc' if sort == 'created_at' and order == 'asc' else 'asc' }}{% if search %}&search={{ search }}&filter_by={{ filter_by }}{% endif %}" class="text-dark text-decoration-none">
+                                        Created {% if sort == 'created_at' %}<i class="bi bi-arrow-{{ 'up' if order == 'asc' else 'down' }}"></i>{% endif %}
+                                    </a></th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ user.id }}</td>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.full_name }}</td>
+                                    <td>{{ user.role or '-' }}</td>
+                                    <td>{{ user.organization or '-' }}</td>
+                                    <td class="text-center">
+                                        {% if user.is_admin %}
+                                        <span class="badge bg-success">Yes</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">No</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-sm btn-primary d-flex align-items-center user-action-btn" 
+                                                    onclick="editUser('{{ user.id }}')"
+                                                    title="Edit User">
+                                                <i class="bi bi-pencil"></i>
+                                                <span class="ms-1">Edit</span>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-success d-flex align-items-center user-action-btn"
+                                                    onclick="sendUserDataEmail('{{ user.id }}')"
+                                                    title="Send User Data">
+                                                <i class="bi bi-envelope"></i>
+                                                <span class="ms-1">Send Mail</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if total_pages > 1 %}
+                    <nav aria-label="Page navigation" class="mt-3">
+                        <ul class="pagination justify-content-center align-items-center">
+                            <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                                <a class="page-link" href="?page=1&sort={{ sort }}&order={{ order }}{% if search %}&search={{ search }}&filter_by={{ filter_by }}{% endif %}" aria-label="First">
+                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                                <a class="page-link" href="?page={{ page - 1 }}&sort={{ sort }}&order={{ order }}{% if search %}&search={{ search }}&filter_by={{ filter_by }}{% endif %}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Página {{ page }} de {{ total_pages }}
+                                </span>
+                            </li>
+                            
+                            <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                                <a class="page-link" href="?page={{ page + 1 }}&sort={{ sort }}&order={{ order }}{% if search %}&search={{ search }}&filter_by={{ filter_by }}{% endif %}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                                <a class="page-link" href="?page={{ total_pages }}&sort={{ sort }}&order={{ order }}{% if search %}&search={{ search }}&filter_by={{ filter_by }}{% endif %}" aria-label="Last">
+                                    <span aria-hidden="true">&raquo;&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de edición -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-audiowide">Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <input type="hidden" id="userId">
+                    <input type="hidden" id="userCurrentPassword">
+                    <input type="hidden" id="userTempPassword">
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="userEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="userFullName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <input type="text" class="form-control" id="userRole">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Organization</label>
+                        <input type="text" class="form-control" id="userOrganization">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="userIsAdmin">
+                            <label class="form-check-label">Is Administrator</label>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="userPassword">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="userPasswordConfirm">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-danger" onclick="deleteUser()">
+                        <i class="bi bi-trash"></i> Delete User
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="generateAndSendNewPassword(document.getElementById('userId').value)">
+                        <i class="bi bi-key"></i> Generate & Send New Password
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="sendUserDataEmail(document.getElementById('userId').value)">
+                        <i class="bi bi-envelope"></i> Send User Data
+                    </button>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="saveUser()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', path='js/users.js') }}"></script>
+{% endblock %} 

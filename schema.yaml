@@ -1,0 +1,191 @@
+type: object
+required:
+  - metadata
+  - assistant_instructions
+properties:
+  metadata:
+    type: object
+    required:
+      - author
+      - description
+    properties:
+      author:
+        type: object
+        required:
+          - name
+        properties:
+          name:
+            type: string
+          role:
+            type: string
+          contact:
+            type: string
+          organization:
+            type: string
+      description:
+        type: object
+        required:
+          - title
+          - summary
+        properties:        
+          title:
+            type: string
+          summary:
+            type: string
+          coverage:
+            type: string
+          educational_level:
+            type: array
+            items:
+              type: string
+          use_cases:
+            type: array
+            items:
+              type: string
+          keywords:
+            type: array
+            items:
+              type: string
+      visibility:
+        type: object
+        properties:
+          is_public:
+            type: boolean
+      rights:
+        type: string
+      creation_date:
+        type: string
+      last_update:
+        type: string
+      history:
+        type: array
+        items:
+          type: string
+  assistant_instructions:
+    type: object
+    required:
+      - context
+      - style_guidelines
+      - final_notes
+      - help_text
+      - role
+      - behavior
+      - capabilities
+      - tools
+    properties:
+      context:
+        type: object
+        required:
+          - context_definition
+          - integration_strategy
+          - user_data_handling
+        properties:
+          context_definition:
+            type: array
+            items:
+              type: string
+          integration_strategy:
+            type: array
+            items:
+              type: string
+          user_data_handling:
+            type: array
+            items:
+              type: string
+      style_guidelines:
+        type: object
+        properties:
+          tone:
+            type: string
+          level_of_detail:
+            type: string
+          formatting_rules:
+            type: array
+            items:
+              type: string
+      final_notes:
+        type: array
+        items:
+          type: string
+      help_text:
+        type: string
+      role:
+        type: string
+      behavior:
+        type: object
+        required:
+          - invalid_command_response
+          - on_greeting
+          - on_help_command
+          - unrelated_topic_response
+          - prompt_visibility
+        properties:
+          invalid_command_response:
+            type: string
+          on_greeting:
+            type: array
+            items:
+              type: string
+          on_help_command:
+            type: array
+            items:
+              type: string
+          unrelated_topic_response:
+            type: string
+          prompt_visibility:
+            type: string
+      capabilities:
+        type: array
+        items:
+          type: string
+      tools:
+        type: object
+        required:
+          - commands
+          - options
+        properties:
+          commands:
+            type: object
+            additionalProperties:
+              type: object
+              required:
+                - display_name
+                - description
+                - internal_description
+              properties:
+                display_name:
+                  type: string
+                description:
+                  type: string
+                internal_description:
+                  type: string
+          options:
+            type: object
+            additionalProperties:
+              type: object
+              required:
+                - display_name
+                - description
+                - internal_description
+              properties:
+                display_name:
+                  type: string
+                description:
+                  type: string
+                internal_description:
+                  type: string
+          decorators:
+              type: object
+              additionalProperties:
+                type: object
+                required:
+                  - display_name
+                  - description
+                  - internal_description
+                properties:
+                  display_name:
+                    type: string
+                  description:
+                    type: string
+                  internal_description:
+                    type: string        

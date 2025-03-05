@@ -1,0 +1,99 @@
+<!-- Modal de detalles del asistente -->
+<div class="modal fade" id="assistantDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-white">
+            <div class="modal-header border-0 pb-0">
+                <h3 class="modal-title font-audiowide text-titles fs-3" id="modalTitle"></h3>
+                <button type="button" 
+                        class="btn btn-dark rounded-circle p-2 bg-black" 
+                        data-bs-dismiss="modal" 
+                        aria-label="Close"
+                        style="width: 40px; height: 40px;">
+                    <i class="bi bi-x-lg text-white"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <!-- Autor -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                                    <i class="bi bi-person fs-4 text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1" id="modalAuthorName"></h6>
+                                    <p class="text-muted mb-0" id="modalAuthorRole"></p>
+                                    <p class="text-muted mb-0" id="modalAuthorOrg"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary mb-3">Description</h6>
+                            <p class="mb-3" id="modalSummary"></p>
+                            <p class="mb-3" id="modalCoverage"></p>
+                        </div>
+                    </div>
+
+                    <!-- Casos de uso -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary mb-3">Use Cases</h6>
+                            <ul class="list-unstyled" id="modalUseCases">
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Keywords -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h6 class="text-primary mb-3">Keywords</h6>
+                            <div id="modalKeywords"></div>
+                        </div>
+                    </div>
+
+                <!-- History -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h6 class="text-primary mb-3">History</h6>
+                        <ul class="list-unstyled" id="modalHistory">
+                        </ul>
+                    </div>
+                </div>
+
+                    <!-- Metadata -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="bg-light p-3 rounded">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <small class="text-muted d-block">
+                                            <i class="bi bi-calendar"></i> Created: 
+                                            <span id="modalCreationDate"></span>
+                                        </small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted d-block">
+                                            <i class="bi bi-clock"></i> Last Update: 
+                                            <span id="modalLastUpdate"></span>
+                                        </small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted d-block">
+                                            <i class="bi bi-shield-check"></i> License: 
+                                            <span id="modalRights"></span>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

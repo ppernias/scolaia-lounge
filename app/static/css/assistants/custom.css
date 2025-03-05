@@ -1,0 +1,484 @@
+.yaml-editor {
+    min-height: 500px;
+    font-size: 14px;
+    line-height: 1.5;
+    tab-size: 2;
+    padding: 15px;
+    border-radius: 6px;
+    resize: vertical;
+    white-space: pre;
+    overflow-wrap: normal;
+    overflow-x: auto;
+}
+
+.yaml-editor:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* Estilo para el modal de YAML */
+#editYamlModal .modal-dialog {
+    max-width: 80%;
+}
+
+#editYamlModal .modal-content {
+    background-color: #f8f9fa;
+}
+
+#editYamlModal .modal-body {
+    padding: 20px;
+}
+
+/* Estilos para botones de icono */
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.btn-icon i {
+    font-size: 1rem;
+}
+
+.btn-icon:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.btn-icon:active {
+    transform: translateY(0);
+}
+
+/* Eliminar estilos antiguos del info-btn que ya no se necesitan */
+.info-btn {
+    background: none;
+    min-width: unset;
+    box-shadow: none;
+}
+
+.info-btn:hover {
+    background: none;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.info-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Estilos para el editor YAML */
+.yaml-editor {
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    tab-size: 2;
+    white-space: pre;
+    resize: vertical;
+}
+
+/* Estilos para las pestañas */
+#yamlEditorTabs .nav-link {
+    color: #495057;
+    font-weight: 500;
+}
+
+#yamlEditorTabs .nav-link.active {
+    color: #0d6efd;
+    border-bottom-color: #0d6efd;
+}
+
+/* Estilos para las tarjetas de herramientas */
+.tool-item {
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: 0.25rem;
+    transition: all 0.3s ease;
+}
+
+.tool-item:hover {
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+}
+
+.tool-item .card-body {
+    padding: 1rem;
+}
+
+.tool-parameters {
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 13px;
+}
+
+/* Ajustes para el modal */
+.modal-xl {
+    max-width: 90%;
+}
+
+.modal-body {
+    max-height: calc(100vh - 210px);
+    overflow-y: auto;
+}
+
+/* Estilos unificados para el modal */
+.modal-content {
+    background-color: #fff !important;
+}
+
+.modal-header {
+    background-color: #fff !important;
+    border-bottom: 1px solid rgba(0,0,0,.1);
+}
+
+.modal-footer {
+    background-color: #fff !important;
+    border-top: 1px solid rgba(0,0,0,.1);
+}
+
+/* Estilos unificados para campos de formulario */
+.form-control {
+    background-color: #f8f9fa !important;
+    border: 1px solid rgba(0,0,0,.1);
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+    background-color: #fff !important;
+}
+
+.form-control:hover {
+    border-color: #86b7fe;
+}
+
+/* Estilos para las listas dinámicas */
+.list-group {
+    margin-bottom: 1rem;
+}
+
+.list-group-item {
+    background-color: #f8f9fa;
+    border: 1px solid rgba(0,0,0,.1);
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.list-group-item:hover {
+    background-color: #fff;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+}
+
+/* Estilos para los botones */
+.btn-outline-secondary {
+    border-color: rgba(0,0,0,.1);
+    color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+    border-color: #86b7fe;
+    color: #2c3e50;
+}
+
+/* Estilos para campos de solo lectura */
+.readonly-field {
+    background-color: #f8f9fa;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid rgba(0,0,0,.1);
+    color: #6c757d;
+}
+
+/* Estilos para switch de visibilidad */
+.form-check-input {
+    background-color: #f8f9fa;
+    border-color: rgba(0,0,0,.1);
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.form-check-input:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+}
+
+/* Estilos para keywords */
+.keyword-item {
+    background-color: #f8f9fa;
+    border: 1px solid rgba(0,0,0,.1);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    margin: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.keyword-item:hover {
+    background-color: #fff;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+}
+
+/* Estilos para labels */
+.form-label {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.font-audiowide {
+    font-weight: 500;
+}
+
+/* Estilos para el modal de edición */
+#editYamlModal .modal-content {
+    background-color: #fff !important;
+}
+
+#editYamlModal .modal-header {
+    background-color: #fff !important;
+    border-bottom: 1px solid rgba(0,0,0,.1);
+}
+
+#editYamlModal .modal-footer {
+    background-color: #fff !important;
+    border-top: 1px solid rgba(0,0,0,.1);
+}
+
+/* Estilos para campos de formulario dentro del modal */
+#editYamlModal .form-control {
+    background-color: #f8f9fa !important;
+    border: 1px solid rgba(0,0,0,.1) !important;
+    transition: all 0.3s ease;
+}
+
+#editYamlModal .form-control:focus {
+    border-color: #86b7fe !important;
+    box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25) !important;
+    background-color: #fff !important;
+}
+
+#editYamlModal .form-control:hover {
+    border-color: #86b7fe !important;
+}
+
+/* Estilos para las listas dinámicas */
+#editYamlModal .list-group-item {
+    background-color: #f8f9fa !important;
+    border: 1px solid rgba(0,0,0,.1);
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+#editYamlModal .list-group-item:hover {
+    background-color: #fff !important;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+}
+
+/* Estilos para los botones */
+#editYamlModal .btn-outline-secondary {
+    border-color: rgba(0,0,0,.1);
+    color: #6c757d;
+}
+
+#editYamlModal .btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+    border-color: #86b7fe;
+    color: #2c3e50;
+}
+
+/* Estilos para campos de solo lectura */
+#editYamlModal .readonly-field {
+    background-color: #f8f9fa !important;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid rgba(0,0,0,.1);
+    color: #6c757d;
+}
+
+/* Estilos para switch de visibilidad */
+#editYamlModal .form-check-input {
+    background-color: #f8f9fa !important;
+    border-color: rgba(0,0,0,.1) !important;
+}
+
+#editYamlModal .form-check-input:checked {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+}
+
+#editYamlModal .form-check-input:focus {
+    border-color: #86b7fe !important;
+    box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25) !important;
+}
+
+/* Estilos para keywords */
+#editYamlModal .keyword-item {
+    background-color: #f8f9fa !important;
+    border: 1px solid rgba(0,0,0,.1);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    margin: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+#editYamlModal .keyword-item:hover {
+    background-color: #fff !important;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+}
+
+/* Estilos para labels */
+#editYamlModal .form-label {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+#editYamlModal .font-audiowide {
+    font-weight: 500;
+}
+
+/* Estilos para las pestañas */
+#editYamlModal .nav-tabs {
+    border-bottom: 1px solid rgba(0,0,0,.1);
+}
+
+#editYamlModal .nav-tabs .nav-link {
+    color: #6c757d;
+}
+
+#editYamlModal .nav-tabs .nav-link:hover {
+    border-color: rgba(0,0,0,.1);
+}
+
+#editYamlModal .nav-tabs .nav-link.active {
+    color: #2c3e50;
+    border-color: rgba(0,0,0,.1) rgba(0,0,0,.1) #fff;
+}
+
+/* Estilos para los campos de texto */
+.form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+}
+
+/* Estilos para las listas dinámicas */
+.list-item {
+    transition: all 0.3s ease;
+}
+
+.list-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.list-item .input-group {
+    margin-bottom: 0.5rem;
+}
+
+.list-item .btn-outline-danger {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.list-item .form-control {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* Ajustes para campos de metadata */
+#basic .form-control:focus,
+#basic .form-select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13,110,253,.15);
+}
+
+#basic .btn-outline-primary {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+#basic .btn-outline-danger {
+    padding: 0.375rem 0.75rem;
+}
+
+/* Estilos para el selector de derechos */
+#assistantRights {
+    background-color: #fff;
+}
+
+/* Ajustes para el contenedor de keywords */
+#keywordsContainer {
+    min-height: 42px;
+    padding: 0.25rem;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+}
+
+#keywordsList {
+    padding: 0.25rem;
+}
+
+/* Estilos para la pestaña de Tools */
+#editYamlModal #tools .tool-item {
+    background-color: #fff;
+    border: 1px solid rgba(0,0,0,.1);
+    transition: all 0.3s ease;
+}
+
+#editYamlModal #tools .tool-item:hover {
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+}
+
+#editYamlModal #tools .tool-item .card-body {
+    padding: 1.25rem;
+}
+
+#editYamlModal #tools .form-control {
+    background-color: #f8f9fa !important;
+    border: 1px solid rgba(0,0,0,.1) !important;
+    transition: all 0.3s ease;
+}
+
+#editYamlModal #tools .form-control:focus {
+    border-color: #86b7fe !important;
+    box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25) !important;
+    background-color: #fff !important;
+}
+
+#editYamlModal #tools .form-control:hover {
+    border-color: #86b7fe !important;
+}
+
+#editYamlModal #tools .btn-outline-danger {
+    border-color: rgba(0,0,0,.1);
+    color: #dc3545;
+}
+
+#editYamlModal #tools .btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
+
+#editYamlModal #tools .btn-outline-primary {
+    border-color: rgba(0,0,0,.1);
+    color: #0d6efd;
+}
+
+#editYamlModal #tools .btn-outline-primary:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+}
+
+#editYamlModal #tools .form-label {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}

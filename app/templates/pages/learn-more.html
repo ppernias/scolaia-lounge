@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center py-4 bg-light">
+    <div class="container">
+        <div class="mb-4 text-center">
+            <img src="//{{ request.headers.get('host') }}/static/img/scolaia-lounge.png" alt="ScolaIA Lounge" class="img-fluid" style="max-width: 350px;">
+        </div>
+        <h1 class="brand-text display-4 mb-3">Learn More About Open Educational Assistants</h1>
+        <p class="lead">Empowering educators and learners through open, AI-driven solutions.</p>
+    </div>
+</section>
+
+<!-- The Foundation of Open Content -->
+<section class="open-content py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">The Foundation of Open Content</h2>
+        <p>
+            For over 25 years, the open education movement has pursued its goal of increasing access to educational opportunities. Traditional Open Educational Resources (OER) revolutionized education by making materials freely available under open licenses, enabling collaboration and reuse worldwide. Generative AI now represents the next evolution in this journey, transitioning from merely sharing resources to dynamically creating educational content tailored to diverse needs and contexts.
+        </p>
+        <p>
+            Unlike traditional OER, generative AI allows for the creation of "generative OER," tools designed to empower educators and learners to generate highly customized content. These advancements are critical to addressing barriers such as language, accessibility, and pedagogical diversity, making education more equitable and impactful.
+        </p>
+    </div>
+</section>
+
+<!-- How Generative AI Transforms Education -->
+<section class="transform-education py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5 text-dark">How Generative AI Transforms Education</h2>
+        <p class="text-dark">
+            Generative AI facilitates the rapid drafting, revising, and remixing of educational materials, drastically reducing the time and expertise required for these processes. By leveraging open prompts and model weights, educators can adapt and localize resources to meet specific needs, from simplifying texts for language learners to creating interactive assessments.
+        </p>
+        <p class="text-dark">
+            This capability extends the principles of open licensing into the realm of AI, ensuring that both the tools and the outputs of generative processes remain accessible, modifiable, and freely shared. By combining generative AI with traditional OER, we unlock new opportunities for innovation in teaching and learning.
+        </p>
+    </div>
+</section>
+
+<!-- Using ScolaIA Lounge to Apply Open Generative AI -->
+<section class="apply-open-ai py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Applying Open Generative AI with ScolaIA Lounge</h2>
+        <p>
+            ScolaIA Lounge empowers educators to harness the potential of generative AI by providing an intuitive platform to create, share, and adapt AI-driven educational assistants. Here's how you can apply these principles:
+        </p>
+        <ul>
+            <li><strong>Create Open AI Assistants:</strong> Use the platform to design AI assistants that generate tailored content for your educational objectives. Share these prompts under open licenses to foster collaboration.</li>
+            <li><strong>Leverage Open Local Models:</strong> Access your own openly licensed AI models to fine-tune and improve assistants for specific learning scenarios, from personalized tutoring to targeted operations on your content.</li>
+            <li><strong>Collaborate and Innovate:</strong> Create and Join a vibrant community of educators sharing best practices, refining resources, and advancing the field of open education through AI.</li>
+        </ul>
+        <p>
+            By embracing these practices, ScolaIA Lounge becomes a catalyst for transforming education, blending the power of generative AI with the ethos of open content to create a more inclusive and effective learning ecosystem.
+        </p>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="cta py-5 bg-light">
+    <div class="container text-center">
+        <h2 class="mb-4 text-dark">Ready to Transform Education?</h2>
+        <p class="lead mb-4 text-dark">Join us in shaping the future of open educational resources with AI-powered innovation.</p>
+        {% if not current_user %}
+        <a href="/auth/register" class="btn btn-primary btn-lg">Create Account</a>
+        {% else %}
+        <a href="/assistants" class="btn btn-primary btn-lg">Go to My Assistants</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

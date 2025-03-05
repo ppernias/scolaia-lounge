@@ -1,0 +1,101 @@
+/* Horizontal scrolling container */
+.scroll-container {
+    position: relative;
+    background-color: color-mix(in srgb, var(--titles-color) 10%, transparent);
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    padding: 0.5rem calc(50vw - 50%);
+    padding-bottom: 1rem;
+}
+
+.scroll-area {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thick;
+    scrollbar-color: var(--titles-color) rgba(255, 255, 255, 0.9);
+    overflow-x: scroll !important;
+    padding-bottom: 0.5rem;
+}
+
+/* Custom scrollbar for Chrome/Safari/Opera */
+.scroll-area::-webkit-scrollbar {
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+.scroll-area::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.scroll-area::-webkit-scrollbar-thumb {
+    background-color: var(--titles-color);
+    border-radius: 4px;
+    min-width: 40px;
+}
+
+.scroll-area::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in srgb, var(--titles-color) 80%, black);
+}
+
+/* Scroll buttons */
+.scroll-button {
+    position: absolute;
+    top: calc(50% - 10px);
+    transform: translateY(-50%);
+    width: 50px;
+    height: 100px;
+    background-color: var(--titles-color);
+    border: 2px solid white;
+    border-radius: 12px;
+    color: white;
+    font-size: 32px;
+    cursor: pointer;
+    z-index: 10;
+    opacity: 0.9;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.scroll-button:hover {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    background-color: var(--titles-color);
+}
+
+.scroll-button:active {
+    transform: translateY(-50%) scale(0.95);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.scroll-button i {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.scroll-button.scroll-left {
+    left: 10px;
+}
+
+.scroll-button.scroll-right {
+    right: 10px;
+}
+
+.scroll-button[style*="pointer-events: none"] {
+    background-color: color-mix(in srgb, var(--titles-color) 60%, white);
+    opacity: 0.5;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .scroll-container::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .scroll-container {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    
+    .scroll-button {
+        display: none !important;
+    }
+}

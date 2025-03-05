@@ -1,0 +1,72 @@
+<!-- Defaults Section -->
+<div class="accordion-item">
+    <h2 class="accordion-header">
+        <button class="accordion-button collapsed" 
+                type="button" data-bs-toggle="collapse" 
+                data-bs-target="#collapseDefaults">
+            <span class="font-audiowide">Defaults Configuration</span>
+        </button>
+    </h2>
+    <div id="collapseDefaults" 
+         class="accordion-collapse collapse"
+         data-bs-parent="#settingsAccordion">
+        <div class="accordion-body">
+            {% for key, field in editable_defaults.items() %}
+            <div class="setting-item mb-3">
+                <div class="mb-3 row align-items-center">
+                    <label class="col-sm-3 col-form-label text-wrap">
+                        <span class="font-audiowide">{{ field.display_key }}</span>
+                    </label>
+                    <div class="col-sm-8">
+                        {% if field.type == 'list' %}
+                            <div class="list-editor" data-key="{{ key }}">
+                                {% for item in field.value %}
+                                <div class="input-group mb-2 list-item">
+                                    <input type="text" class="form-control" value="{{ item }}">
+                                    <button class="btn btn-outline-danger remove-item" type="button">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                                {% endfor %}
+                                <button class="btn btn-outline-secondary add-item" type="button">
+                                    <i class="bi bi-plus"></i> Add Item
+                                </button>
+                            </div>
+                        {% elif field.type == 'boolean' %}
+                            <div class="form-check form-switch">
+                                <input class="form-check-input default-value-editor" type="checkbox"
+                                       data-key="{{ key }}" {% if field.value %}checked{% endif %}>
+                            </div>
+                        {% elif field.type == 'number' %}
+                            <input type="number" class="form-control default-value-editor"
+                                   data-key="{{ key }}" value="{{ field.value }}">
+                        {% else %}
+                            <textarea class="form-control default-value-editor auto-expand" 
+                                    data-key="{{ key }}"
+                                    rows="3"
+                                    style="min-height: 85px; overflow-y: hidden;"
+                                    >{{ field.value }}</textarea>
+                        {% endif %}
+                    </div>
+                    <div class="col-sm-1">
+                        <button class="btn btn-sm btn-outline-primary save-default-btn"
+                                data-key="{{ key }}" data-type="{{ field.type }}"
+                                title="Save changes">
+                            <i class="bi bi-save"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+.text-wrap {
+    white-space: normal;
+    word-wrap: break-word;
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+</style>

@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block head %}
+{{ super() }}
+<!-- Cargar scripts en el head con defer -->
+<script defer src="{{ url_for('static', filename='js/profile.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">Profile Settings</h2>
+                    
+                    <!-- Profile Form -->
+                    <form id="profileForm" onsubmit="handleProfileUpdate(event)">
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label">Username</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" value="{{ current_user.username }}" disabled>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 row">
+                            <label for="email" class="col-sm-3 col-form-label">Email</label>
+                            <div class="col-sm-9">
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ current_user.email }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 row">
+                            <label for="full_name" class="col-sm-3 col-form-label">Name</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="full_name" name="full_name" 
+                                       value="{{ current_user.full_name }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 row">
+                            <label for="role" class="col-sm-3 col-form-label">Role</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="role" name="role" 
+                                       value="{{ current_user.role or '' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 row">
+                            <label for="organization" class="col-sm-3 col-form-label">Organization</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="organization" name="organization" 
+                                       value="{{ current_user.organization or '' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label">Last Update</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" 
+                                       value="{{ current_user.created_at.strftime('%Y-%m-%d %H:%M:%S') }}" disabled>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-teal">Update Profile</button>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <!-- Password Form -->
+                    <h3 class="text-center mb-4">Change Password</h3>
+                    <form id="passwordForm" onsubmit="handlePasswordUpdate(event)">
+                        <div class="mb-3 row">
+                            <label for="current_password" class="col-sm-3 col-form-label">Current</label>
+                            <div class="col-sm-9">
+                                <input type="password" class="form-control" id="current_password" 
+                                       name="current_password" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 row">
+                            <label for="new_password" class="col-sm-3 col-form-label">New</label>
+                            <div class="col-sm-9">
+                                <input type="password" class="form-control" id="new_password" 
+                                       name="new_password" required 
+                                       pattern=".{8,}"
+                                       title="Password must be at least 8 characters long">
+                                <div class="form-text text-muted">
+                                    Password requirements:
+                                    <ul class="mb-0 small">
+                                        <li>At least 8 characters long</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 row">
+                            <label for="password_confirm" class="col-sm-3 col-form-label">Confirm</label>
+                            <div class="col-sm-9">
+                                <input type="password" class="form-control" id="password_confirm" 
+                                       name="password_confirm" required>
+                                <div id="passwordError" class="invalid-feedback">
+                                    Passwords do not match
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-teal">Update Password</button>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <!-- Cancel Account Section -->
+                    <div class="d-flex justify-content-center">
+                        <button type="button" class="btn btn-outline-danger" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#cancelAccountModal">
+                            <i class="bi bi-x-circle me-2"></i>Cancel Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de cancelación de cuenta -->
+<div class="modal fade" id="cancelAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">Cancel Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    You are going to cancel your account. This action cannot be undone.
+                </div>
+                <p>Please, confirm by entering your username below ({{ current_user.username }}):</p>
+                <input type="text" class="form-control" id="confirmUsername" 
+                       placeholder="Enter your username">
+                <div id="username-error" class="alert alert-danger mt-2 d-none">
+                    <i class="bi bi-exclamation-circle"></i>
+                    Username does not match. Please retry or cancel.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Back</button>
+                <button type="button" class="btn btn-danger" 
+                        data-username="{{ current_user.username }}"
+                        onclick="proceedAccountDeletion()">
+                    Proceed to Delete Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

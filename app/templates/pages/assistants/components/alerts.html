@@ -1,0 +1,40 @@
+{# Mensajes de éxito #}
+{% if request.query_params.get('success') == 'imported' %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    Assistant imported successfully!
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% elif request.query_params.get('success') == 'demo_imported' %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    Demo assistant imported successfully!
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+{# Mensajes de error #}
+{% if request.query_params.get('error') == 'invalid_yaml' %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    Invalid YAML file. Please check the file format.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% elif request.query_params.get('error') == 'import_failed' %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    Failed to import assistant. Please try again.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% elif request.query_params.get('error') == 'demo_not_found' %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    Demo assistant file not found.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% elif request.query_params.get('error') == 'demo_invalid' %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    Invalid demo assistant file.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% elif request.query_params.get('error') == 'demo_import_failed' %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    Failed to import demo assistant. Please try again.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}

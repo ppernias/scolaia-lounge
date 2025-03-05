@@ -1,0 +1,69 @@
+<!-- Toast for notifications -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="settingsToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-check-circle me-2"></i>
+                <span class="toast-message"></span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function handleDefaultsUpdate(event, displayKey) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        
+        try {
+            const response = await fetch('/settings/defaults/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(Object.fromEntries(formData)),
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                toast.success(`Changes saved for "${displayKey}"`);
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                toast.error(`Error saving changes for "${displayKey}": ${data.message}`);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            toast.error(`Error saving changes for "${displayKey}": ${error.message}`);
+        }
+    }
+
+    // Add event listeners when document is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        const defaultsForms = document.querySelectorAll('.defaults-form');
+        defaultsForms.forEach(form => {
+            form.addEventListener('submit', (e) => {
+                const displayKey = form.getAttribute('data-display-key');
+                handleDefaultsUpdate(e, displayKey);
+            });
+        });
+    });
+</script>
+
+<style>
+@keyframes highlightUpdate {
+    0% { background-color: transparent; }
+    50% { background-color: rgba(var(--bs-success-rgb), 0.1); }
+    100% { background-color: transparent; }
+}
+
+.setting-updated {
+    animation: highlightUpdate 1s ease-in-out;
+}
+
+.toast-container {
+    z-index: 1056;
+}
+</style>

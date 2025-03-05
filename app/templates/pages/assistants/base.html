@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', path='css/assistants/custom.css') }}">
+{% endblock %}
+
+{% block head_scripts %}
+<!-- Scripts específicos -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+<script src="{{ url_for('static', path='js/explore.js') }}"></script>
+<script src="{{ url_for('static', path='js/assistant-utils.js') }}"></script>
+<script src="{{ url_for('static', path='js/assistant-core.js') }}"></script>
+<script src="{{ url_for('static', path='js/assistant-editor.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% include "pages/assistants/components/alerts.html" %}
+
+    {% if assistants %}
+    <div class="row justify-content-between align-items-center mb-4">
+        <div class="col">
+            <h1 class="font-audiowide">
+                <i class="bi bi-robot"></i> My Assistants
+            </h1>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-teal me-2" onclick="createNewAssistant()">
+                <i class="bi bi-plus-circle"></i> New Assistant
+            </button>
+            <button class="btn btn-teal me-2" id="importAssistantBtn">
+                <i class="bi bi-upload"></i> Import Assistant
+            </button>
+        </div>
+    </div>
+
+    <div class="row" id="assistants-container">
+        {% for assistant in assistants %}
+            {% include "pages/assistants/components/assistant_card.html" %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center mt-5">
+        <h2 class="font-audiowide">Welcome to Your Assistants!</h2>
+        <p class="lead">You don't have any assistants yet. Let's create one!</p>
+        <button class="btn btn-teal mt-3" onclick="createNewAssistant()">
+            <i class="bi bi-plus-circle"></i> Create Your First Assistant
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modales -->
+{% include "pages/assistants/modals/delete_modal.html" %}
+{% include "pages/assistants/modals/details_modal.html" %}
+{% include "pages/assistants/modals/yaml_modal.html" %}
+{% include "pages/assistants/modals/edit_yaml_modal.html" %}
+{% include "pages/assistants/modals/confirm_improvements_modal.html" %}
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

@@ -1,0 +1,284 @@
+<!-- Modal para editar YAML -->
+<div class="modal fade" id="editYamlModal" tabindex="-1" aria-labelledby="editYamlModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <input type="hidden" id="currentAssistantId" value="{{ assistant.id if assistant else '' }}">
+        <input type="hidden" id="currentUsername" value="{{ current_user.username }}">
+        <input type="hidden" id="currentFullName" value="{{ current_user.full_name }}">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editYamlModalLabel">Edit Assistant YAML</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab">Basic Info</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#author" type="button" role="tab">Author</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#context" type="button" role="tab">Context</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#system" type="button" role="tab">System</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#style" type="button" role="tab">Style Guidelines</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tools" type="button" role="tab">Tools</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#raw" type="button" role="tab">Raw YAML</button>
+                    </li>
+                </ul>
+                <div class="tab-content p-3">
+                    <!-- Raw YAML Tab -->
+                    <div class="tab-pane fade" id="raw" role="tabpanel">
+                        <textarea id="yamlEditor" class="form-control yaml-editor font-monospace" rows="20" 
+                                spellcheck="false" wrap="off"></textarea>
+                    </div>
+
+                    <!-- Tab de Información Básica -->
+                    <div class="tab-pane fade show active" id="basic" role="tabpanel">
+                        <div class="mb-3">
+                            <label for="assistantName" class="form-label font-audiowide">Title</label>
+                            <input type="text" class="form-control" id="assistantName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="assistantDescription" class="form-label font-audiowide">Summary</label>
+                            <textarea class="form-control" id="assistantDescription" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="assistantCoverage" class="form-label font-audiowide">Coverage</label>
+                            <textarea class="form-control" id="assistantCoverage" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label font-audiowide">Educational Level</label>
+                            <div id="educationalLevelList" class="list-group mb-2"></div>
+                            <div class="input-group">
+                                <select class="form-select" id="educationalLevelInput">
+                                    <option value="">Select an educational level...</option>
+                                    <option value="Postgraduate Higher Education">Postgraduate Higher Education</option>
+                                    <option value="Undergraduate Higher Education">Undergraduate Higher Education</option>
+                                    <option value="Technical / Vocational Education">Technical / Vocational Education</option>
+                                    <option value="Upper Secondary Education">Upper Secondary Education</option>
+                                    <option value="Lower Secondary Education">Lower Secondary Education</option>
+                                    <option value="Primary Education">Primary Education</option>
+                                    <option value="Pre-School / Early Childhood Education">Pre-School / Early Childhood Education</option>
+                                    <option value="Professional Development / Continuing Education">Professional Development / Continuing Education</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <button class="btn btn-outline-secondary" type="button" onclick="addEducationalLevel()">Add</button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label font-audiowide">Use Cases</label>
+                            <div id="useCasesList" class="list-group mb-2"></div>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="useCaseInput" placeholder="Enter a use case">
+                                <button class="btn btn-outline-secondary" type="button" onclick="addUseCase()">Add</button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label font-audiowide">Keywords</label>
+                            <div id="keywordsContainer" class="mb-2">
+                                <div id="keywordsList" class="d-flex flex-wrap gap-2"></div>
+                            </div>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="keywordInput" placeholder="Enter a keyword">
+                                <button class="btn btn-outline-secondary" type="button" onclick="addKeyword()">Add</button>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                        <!-- Campos de Metadata -->
+                        <div class="mb-3">
+                            <label for="assistantRights" class="form-label font-audiowide">Rights</label>
+                            <div id="assistantRights" class="readonly-field"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label font-audiowide">History</label>
+                            <ul id="historyList" class="list-group">
+                                <!-- History entries will be added here dynamically -->
+                            </ul>
+                        </div>
+                        <div class="mb-3">
+                            <label for="assistantVisibility" class="form-label font-audiowide">Visibility</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="assistantVisibility">
+                                <label class="form-check-label" for="assistantVisibility">Public</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="minorChanges" checked onchange="toggleNewVersion()">
+                                <label class="form-check-label" for="minorChanges">
+                                    Minor changes (don't update history)
+                                </label>
+                            </div>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="createNewVersion" disabled>
+                                <label class="form-check-label" for="createNewVersion">
+                                    Create new version of the assistant
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Author Tab -->
+                    <div class="tab-pane fade" id="author" role="tabpanel">
+                        <div class="mb-3">
+                            <label for="authorName" class="form-label font-audiowide">Author Name</label>
+                            <input type="text" class="form-control" id="authorName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="authorRole" class="form-label font-audiowide">Role</label>
+                            <input type="text" class="form-control" id="authorRole">
+                        </div>
+                        <div class="mb-3">
+                            <label for="authorContact" class="form-label font-audiowide">Contact</label>
+                            <input type="text" class="form-control" id="authorContact">
+                        </div>
+                        <div class="mb-3">
+                            <label for="authorOrganization" class="form-label font-audiowide">Organization</label>
+                            <input type="text" class="form-control" id="authorOrganization">
+                        </div>
+                    </div>
+
+                    <!-- Context Tab -->
+                    <div class="tab-pane fade" id="context" role="tabpanel">
+                        <div class="mb-3">
+                            <label class="form-label font-audiowide">Context Definition</label>
+                            <ul id="contextDefinitionList" class="list-group mb-2">
+                                <!-- Context definitions will be added here dynamically -->
+                            </ul>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="contextDefinitionInput" placeholder="Enter context definition">
+                                <button class="btn btn-outline-secondary" type="button" onclick="addListItem('contextDefinitionList', 'context-definition', document.getElementById('contextDefinitionInput').value)">Add</button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label font-audiowide">Integration Strategy</label>
+                            <ul id="integrationStrategyList" class="list-group mb-2">
+                                <!-- Integration strategies will be added here dynamically -->
+                            </ul>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="integrationStrategyInput" placeholder="Enter integration strategy">
+                                <button class="btn btn-outline-secondary" type="button" onclick="addListItem('integrationStrategyList', 'integration-strategy', document.getElementById('integrationStrategyInput').value)">Add</button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label font-audiowide">User Data Handling</label>
+                            <ul id="userDataHandlingList" class="list-group mb-2">
+                                <!-- User data handling rules will be added here dynamically -->
+                            </ul>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="userDataHandlingInput" placeholder="Enter user data handling rule">
+                                <button class="btn btn-outline-secondary" type="button" onclick="addListItem('userDataHandlingList', 'user-data-handling', document.getElementById('userDataHandlingInput').value)">Add</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Tab -->
+                    <div class="tab-pane fade" id="system" role="tabpanel">
+                        <div class="mb-3">
+                            <label for="systemRole" class="form-label font-audiowide">Role</label>
+                            <div class="input-group">
+                                <textarea class="form-control" id="systemContent" rows="5"></textarea>
+                                <button class="btn btn-outline-secondary" type="button" onclick="improveRolePrompt()" title="Improve prompt using AI">
+                                    <i class="bi bi-magic"></i> Improve
+                                </button>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                        <div class="mb-3">
+                            <label class="form-label font-audiowide">Behavior</label>
+                            <div class="mb-3">
+                                <label for="invalidCommandResponse" class="form-label font-audiowide">Invalid Command Response</label>
+                                <input type="text" class="form-control" id="invalidCommandResponse">
+                            </div>
+                            <div class="mb-3">
+                                <label for="onGreeting" class="form-label font-audiowide">On Greeting</label>
+                                <textarea class="form-control" id="onGreeting" name="onGreeting" rows="4"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="onHelpCommand" class="form-label font-audiowide">On Help Command</label>
+                                <textarea class="form-control" id="onHelpCommand" name="onHelpCommand" rows="4"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="unrelatedTopicResponse" class="form-label font-audiowide">Unrelated Topic Response</label>
+                                <textarea class="form-control" id="unrelatedTopicResponse" rows="2" placeholder="Response when user asks about an unrelated topic..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="promptVisibility" class="form-label font-audiowide">Prompt Visibility</label>
+                                <select class="form-select" id="promptVisibility">
+                                    <option value="visible">Visible</option>
+                                    <option value="hidden">Hidden</option>
+                                </select>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                        <div class="mb-3">
+                            <label class="form-label font-audiowide">Capabilities</label>
+                            <textarea class="form-control" id="capabilities" name="capabilities" rows="4"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Style Guidelines Tab -->
+                    <div class="tab-pane fade" id="style" role="tabpanel">
+                        <div class="mb-3">
+                            <label for="styleTone" class="form-label font-audiowide">Tone</label>
+                            <textarea class="form-control" id="styleTone" rows="2" placeholder="Describe the tone of communication..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="styleLevelOfDetail" class="form-label font-audiowide">Level of Detail</label>
+                            <textarea class="form-control" id="styleLevelOfDetail" rows="2" placeholder="Describe the expected level of detail..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label font-audiowide">Formatting Rules</label>
+                            <div id="formattingRulesList" class="list-group mb-2"></div>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="formattingRulesInput" placeholder="Enter a formatting rule">
+                                <button class="btn btn-outline-secondary" type="button" onclick="addListItem('formattingRulesList', 'formatting-rule', document.getElementById('formattingRulesInput').value)">Add</button>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                        <div class="mb-3">
+                            <label class="form-label font-audiowide">Final Notes</label>
+                            <div id="finalNotesList" class="list-group mb-2"></div>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="finalNotesInput" placeholder="Enter a final note">
+                                <button class="btn btn-outline-secondary" type="button" onclick="addListItem('finalNotesList', 'final-note', document.getElementById('finalNotesInput').value)">Add</button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="helpText" class="form-label font-audiowide">Help Text</label>
+                            <textarea class="form-control" id="helpText" rows="3" placeholder="Enter help text for the assistant..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Tools Tab -->
+                    <div class="tab-pane fade" id="tools" role="tabpanel">
+                        <div class="mb-3">
+                            <div id="toolsList" class="list-group mb-2"></div>
+                            <button class="btn btn-outline-secondary" type="button" onclick="addNewTool()">Add Tool</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex align-items-center me-auto">
+                    <span id="yamlCharCount" class="me-2">0</span>
+                    <span>/</span>
+                    <span class="ms-2">8000 characters</span>
+                    <div class="progress ms-3" style="width: 100px; height: 10px;">
+                        <div id="yamlCharProgress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveYamlChanges()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>

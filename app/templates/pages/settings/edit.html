@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="font-audiowide">System Settings</h2>
+                <div>
+                    <button id="testOpenAIButton" class="btn btn-outline-teal me-2">
+                        <i class="bi bi-robot"></i> Test OpenAI
+                    </button>
+                    <button id="testOllamaButton" class="btn btn-outline-teal me-2">
+                        <i class="bi bi-robot"></i> Test Ollama
+                    </button>
+                    <button id="testEmailButton" class="btn btn-outline-teal">
+                        <i class="bi bi-envelope"></i> Test eMail
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+                {% for category in settings_by_category.keys() %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if loop.first %}active{% endif %}" 
+                            id="tab-{{ category }}" 
+                            data-bs-toggle="tab"
+                            data-bs-target="#content-{{ category }}" 
+                            type="button"
+                            role="tab">
+                        <span class="font-audiowide">{{ category|title }}</span>
+                    </button>
+                </li>
+                {% endfor %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" 
+                            id="tab-defaults" 
+                            data-bs-toggle="tab"
+                            data-bs-target="#content-defaults" 
+                            type="button"
+                            role="tab">
+                        <span class="font-audiowide">Defaults YAML</span>
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tabs Content -->
+            <div class="tab-content p-4 bg-dark rounded-bottom" id="settingsTabContent">
+                {% for category, settings in settings_by_category.items() %}
+                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
+                     id="content-{{ category }}" 
+                     role="tabpanel">
+                    {% if category == 'theme' %}
+                    <div class="theme-preview mb-4 p-3 rounded">
+                        <h5 class="font-audiowide mb-3">Theme Preview</h5>
+                        <div class="preview-elements p-3 rounded">
+                            <button class="btn btn-primary mb-2">Sample Button</button>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Sample Card</h5>
+                                    <p class="card-text">This is a preview of how your theme will look.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        {% for setting in settings_by_category['theme'] %}
+                        <div class="col-md-6">
+                            <div class="setting-item">
+                                <label class="form-label d-flex align-items-center">
+                                    <span class="me-2">{{ setting.key|replace('_', ' ')|title }}</span>
+                                    <div class="color-preview" style="background-color: {{ setting.value }}"></div>
+                                </label>
+                                <div class="input-group">
+                                    <input type="color" 
+                                           class="form-control form-control-color" 
+                                           id="setting_{{ setting.id }}"
+                                           value="{{ setting.value }}"
+                                           data-key="{{ setting.key }}"
+                                           title="Choose color for {{ setting.key }}"
+                                           onchange="updateThemeColor('{{ setting.id }}', this.value)">
+                                    <input type="text" 
+                                           class="form-control color-value" 
+                                           value="{{ setting.value }}"
+                                           id="text_{{ setting.id }}"
+                                           onchange="updateThemeColor('{{ setting.id }}', this.value)">
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {% for setting in settings %}
+                    <div class="setting-item mb-3">
+                        <div class="mb-3 row align-items-center">
+                            <label class="col-sm-3 col-form-label">
+                                {{ setting.key }}
+                                {% if setting.is_encrypted %}
+                                <i class="bi bi-lock-fill text-warning"></i>
+                                {% endif %}
+                            </label>
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                    {% if category == 'improve' %}
+                                    <textarea class="form-control" 
+                                             id="setting_{{ setting.id }}"
+                                             rows="10"
+                                             readonly>{{ setting.value }}</textarea>
+                                    {% elif setting.key == 'ollama_model' or setting.key == 'openapi_model' %}
+                                    <select class="form-select" 
+                                            id="setting_{{ setting.id }}"
+                                            disabled
+                                            data-category="{{ setting.category }}"
+                                            data-key="{{ setting.key }}"
+                                            data-current-value="{{ setting.get_value() }}">
+                                        <option value="">none</option>
+                                    </select>
+                                    {% else %}
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="setting_{{ setting.id }}"
+                                           value="{{ setting.get_value() }}" 
+                                           readonly 
+                                           data-category="{{ setting.category }}"
+                                           data-key="{{ setting.key }}"
+                                           data-encrypted="{{ setting.is_encrypted }}"
+                                           data-current-value="{{ setting.get_value() }}">
+                                    {% endif %}
+                                    <button class="btn btn-outline-secondary" 
+                                            type="button"
+                                            onclick="toggleEdit({{ setting.id }})">
+                                        <i class="bi bi-pencil-square" id="icon_{{ setting.id }}"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <div class="tab-pane fade" id="content-defaults" role="tabpanel">
+                    <div class="setting-item mb-3">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h5 class="font-audiowide">Edit defaults.yaml</h5>
+                            <div>
+                                <button class="btn btn-sm btn-outline-success me-2" onclick="saveDefaultsYaml()">
+                                    <i class="bi bi-save"></i> Save
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="reloadDefaultsYaml()">
+                                    <i class="bi bi-arrow-clockwise"></i> Reload
+                                </button>
+                            </div>
+                        </div>
+                        <div class="yaml-editor-container">
+                            <textarea id="defaultsYamlEditor" class="form-control yaml-editor" spellcheck="false"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Setting Modal -->
+<div class="modal fade" id="editSettingModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Setting</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editSettingForm">
+                    <input type="hidden" id="settingId">
+                    <div class="mb-3">
+                        <label for="settingCategory" class="form-label">Category</label>
+                        <input type="text" class="form-control" id="settingCategory" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="settingKey" class="form-label">Key</label>
+                        <input type="text" class="form-control" id="settingKey" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="settingValue" class="form-label">Value</label>
+                        <textarea class="form-control" 
+                                 id="settingValue" 
+                                 rows="10"></textarea>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="isEncrypted">
+                        <label class="form-check-label" for="isEncrypted">Encrypt Value</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveSetting()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% include "pages/settings/defaults_scripts.html" %}
+{% endblock %}

@@ -1,0 +1,85 @@
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+    height: var(--navbar-height);
+    background: linear-gradient(135deg, #008080 0%, #004040 100%);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 0;
+    transition: all 0.3s ease;
+}
+
+[data-bs-theme="dark"] .navbar {
+    background: linear-gradient(135deg, #004040 0%, #002020 100%);
+}
+
+.navbar .container-fluid {
+    height: var(--navbar-height);
+}
+
+.navbar *:not(.brand-surname) {
+    color: white !important;
+}
+
+.navbar .brand-text {
+    color: white !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.navbar .brand-surname {
+    color: #fa0000 !important;
+    font-family: 'Allura', cursive !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    font-size: 3rem !important;
+}
+
+/* Theme toggle styles */
+.theme-toggle {
+    border-left: 1px solid rgba(0,0,0,0.1);
+    padding-left: 1.5rem;
+    margin-left: 1.5rem;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+[data-bs-theme="dark"] .theme-toggle {
+    border-left-color: rgba(255,255,255,0.1);
+}
+
+.theme-toggle .btn {
+    padding: 0.5rem;
+    line-height: 1;
+}
+
+/* Responsive navbar */
+@media (max-width: 768px) {
+    .navbar .container-fluid {
+        padding: 0.5rem;
+    }
+    
+    .navbar-collapse {
+        background-color: var(--bs-body-bg);
+        padding: 1rem;
+        border-top: 1px solid rgba(0,0,0,0.1);
+    }
+
+    [data-bs-theme="dark"] .navbar-collapse {
+        border-top-color: rgba(255,255,255,0.1);
+    }
+
+    .navbar-nav {
+        margin-bottom: 1rem;
+    }
+
+    .theme-toggle {
+        border-left: none;
+        padding-left: 0;
+        margin-left: 0;
+        justify-content: center;
+        border-top: 1px solid rgba(0,0,0,0.1);
+        padding-top: 1rem;
+    }
+}

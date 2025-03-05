@@ -1,0 +1,60 @@
+.accordion-button {
+    padding: 1rem;
+}
+
+#settingsAccordion .accordion-item {
+    background-color: var(--card-bg) !important;
+    color: white !important;
+    border: none;
+    margin-bottom: 1rem;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+#settingsAccordion .accordion-button {
+    background-color: var(--card-bg) !important;
+    color: white !important;
+    border: none;
+}
+
+#settingsAccordion .accordion-button:not(.collapsed) {
+    background-color: var(--card-bg) !important;
+    color: white !important;
+    box-shadow: none;
+}
+
+#settingsAccordion .accordion-button::after {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+#settingsAccordion .accordion-body {
+    background-color: var(--card-bg) !important;
+    color: white !important;
+}
+
+#settingsAccordion label {
+    color: white !important;
+}
+
+#settingsAccordion .form-control,
+#settingsAccordion .form-select {
+    background-color: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+}
+
+#settingsAccordion .form-control:focus,
+#settingsAccordion .form-select:focus {
+    background-color: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.3);
+    color: white;
+    box-shadow: 0 0 0 0.25rem rgba(255,255,255,0.1);
+}
+
+#settingsAccordion .form-control::placeholder {
+    color: rgba(255,255,255,0.6);
+}
+
+#settingsAccordion .form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}

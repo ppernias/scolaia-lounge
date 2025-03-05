@@ -1,0 +1,122 @@
+<!-- Mini Card Template -->
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body d-flex flex-column position-relative">
+            <!-- Collections and Likes counters -->
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="counter-icon">
+                    <i class="bi bi-bookmark-star"></i>
+                    <span>{{ assistant.in_collections|default(0) }}</span>
+                </div>
+                <div class="counter-icon">
+                    <i class="bi bi-heart-fill heart-icon"></i>
+                    <span>{{ assistant.likes|default(0) }}</span>
+                </div>
+            </div>
+
+            <!-- Botones en la esquina superior derecha -->
+            <div class="position-absolute top-0 end-0 p-2 d-flex gap-2">
+                {% if current_user %}
+                <button class="btn btn-like like-btn"
+                        data-assistant-id="{{ assistant.id }}"
+                        onclick="likeAssistant('{{ assistant.id }}')">
+                    <i class="bi bi-heart-fill heart-icon me-1"></i>Like
+                </button>
+                <button class="btn btn-add" 
+                        data-assistant-id="{{ assistant.id }}"
+                        data-author-id="{{ assistant.user_id }}"
+                        onclick="addAssistantToCollection('{{ assistant.id }}', '{{ current_user.id }}')">
+                    <i class="bi bi-bookmark-star-fill me-1"></i>Add
+                </button>
+                {% endif %}
+                <button class="btn btn-icon btn-secondary btn-sm" 
+                        onclick="showAssistantDetails('{{ assistant.id }}')"
+                        data-bs-toggle="tooltip" 
+                        data-bs-placement="bottom" 
+                        title="Assistant Info">
+                    <i class="bi bi-info-circle-fill"></i>
+                </button>
+            </div>
+
+            <!-- Título con padding para los botones -->
+            <h5 class="card-title mb-2 pe-5 mt-1">{{ assistant.title }}</h5>
+            
+            <!-- Autor e Info -->
+            <div class="mb-1">
+                <small class="text-muted">
+                    <strong>By: </strong><span data-author>{{ assistant.author.name }}</span>
+                    {% if assistant.author.organization %}
+                        · <span data-organization>{{ assistant.author.organization }}</span>
+                    {% endif %}
+                </small>
+                {% if assistant.author.role %}
+                    <br>
+                    <small class="text-muted">{{ assistant.author.role }}</small>
+                {% endif %}
+            </div>
+            
+            <!-- Coverage -->
+            <div class="mb-2" data-coverage="{{ assistant.coverage }}">
+                <small class="text-muted">
+                    <strong>Coverage: </strong>{{ assistant.coverage }}
+                </small>
+            </div>
+
+            <!-- Educational Levels -->
+            <div class="mb-2">
+                {% for level in assistant.educational_levels %}
+                <span data-educational-level="{{ level }}" class="d-none"></span>
+                {% endfor %}
+            </div>
+            
+            <!-- Resumen con toggle -->
+            <div class="summary-container">
+                <p class="card-text small mb-1 summary-short">
+                    {{ assistant.summary[:180] }}{% if assistant.summary|length > 180 %}...{% endif %}
+                </p>
+                {% if assistant.summary|length > 180 %}
+                    <p class="card-text small mb-1 summary-full" style="display: none;">
+                        {{ assistant.summary }}
+                    </p>
+                    <button onclick="toggleSummary(this)" 
+                            class="btn btn-link btn-sm p-0 mb-2 text-muted">
+                        <i class="bi bi-chevron-down"></i> More
+                    </button>
+                {% endif %}
+            </div>
+            
+            <!-- Tools Display Names -->
+            <div class="tools mb-2">
+                <strong class="d-block mb-1">Tools:</strong>
+                {% for tool in assistant.tools %}
+                <span class="badge bg-{{ tool.type }} text-white me-1 mb-1">{{ tool.name }}</span>
+                {% endfor %}
+            </div>
+
+            <!-- Keywords -->
+            <div class="keywords mb-2">
+                <strong class="d-block mb-1">Keywords:</strong>
+                {% for keyword in assistant.keywords %}
+                <span class="badge bg-light text-dark me-1 mb-1">{{ keyword }}</span>
+                {% endfor %}
+            </div>
+            <!-- Footer con Metadata -->
+            <div class="mt-auto d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    <i class="bi bi-clock"></i> 
+                    {% if assistant.last_update %}
+                        Updated: {{ assistant.last_update }}
+                    {% elif assistant.updated_at %}
+                        Updated: {{ assistant.updated_at }}
+                    {% else %}
+                        Updated: N/A
+                    {% endif %}
+                </small>
+                <small class="text-muted">
+                    <i class="bi bi-shield-check"></i> {{ assistant.metadata.rights if assistant.metadata and assistant.metadata.rights else 'CC By-Sa 4.0' }}
+                </small>
+            </div>
+           
+        </div>
+    </div>
+</div>

@@ -1,0 +1,117 @@
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body d-flex flex-column position-relative">
+            <!-- Botones en la esquina superior derecha -->
+            <div class="position-absolute top-0 end-0 p-2">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-icon btn-danger btn-sm me-5" 
+                            onclick="deleteAssistant('{{ assistant.id }}')"
+                            data-bs-toggle="tooltip" 
+                            data-bs-placement="bottom" 
+                            title="Delete Assistant">
+                        <i class="bi bi-trash-fill"></i>
+                    </button>
+                    <div class="button-group d-flex gap-2">
+                        <button class="btn btn-icon btn-success btn-sm"
+                                onclick="cloneAssistant('{{ assistant.id }}')"
+                                data-bs-toggle="tooltip" 
+                                data-bs-placement="bottom" 
+                                title="Clone Assistant">
+                            <i class="bi bi-layers"></i>
+                        </button>
+                        <button class="btn btn-icon btn-primary btn-sm"
+                                onclick="showYamlContent('{{ assistant.id }}')"
+                                data-bs-toggle="tooltip" 
+                                data-bs-placement="bottom" 
+                                title="View/Export YAML">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </button>
+                        <button class="btn btn-icon btn-warning btn-sm"
+                                onclick="editYamlContent('{{ assistant.id }}')"
+                                data-bs-toggle="tooltip" 
+                                data-bs-placement="bottom" 
+                                title="Edit YAML"
+                                {% if request.url.path.startswith('/collection') %}disabled{% endif %}>
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button class="btn btn-icon btn-secondary btn-sm" 
+                                onclick="showAssistantDetails('{{ assistant.id }}')"
+                                data-bs-toggle="tooltip" 
+                                data-bs-placement="bottom" 
+                                title="Assistant Info">
+                            <i class="bi bi-info-circle-fill"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Título con padding para los botones -->
+            <h5 class="card-title mb-2 pe-5 mt-5">{{ assistant.title }}</h5>
+            
+            <!-- Autor e Info -->
+            <div class="mb-2">
+                <small class="text-muted">
+                    <strong>By: </strong>{{ assistant.metadata.author.name if assistant.metadata.author else 'Unknown' }}
+                    {% if assistant.metadata.author and assistant.metadata.author.organization %}
+                        · {{ assistant.metadata.author.organization }}
+                    {% endif %}
+                </small>
+            </div>
+            
+            <!-- Resumen con toggle -->
+            <div class="summary-container">
+                {% set summary = assistant.metadata.description.summary if assistant.metadata.description else "" %}
+                <p class="card-text small mb-1 summary-short">
+                    {{ summary[:180] }}{% if summary|length > 180 %}...{% endif %}
+                </p>
+                {% if summary|length > 180 %}
+                    <p class="card-text small mb-1 summary-full" style="display: none;">
+                        {{ summary }}
+                    </p>
+                    <button onclick="toggleSummary(this)" 
+                            class="btn btn-link btn-sm p-0 mb-3 text-muted">
+                        <i class="bi bi-chevron-down"></i> More
+                    </button>
+                {% endif %}
+            </div>
+
+            <!-- Tools Display Names -->
+            <div class="tools mb-2">
+                <strong class="d-block mb-1">Tools:</strong>
+                {% for tool in assistant.tools %}
+                <span class="badge bg-{{ tool.type }} text-white me-1 mb-1">{{ tool.name }}</span>
+                {% endfor %}
+            </div>
+
+            <!-- Keywords -->
+            <div class="keywords mb-3">
+                <strong class="d-block mb-1">Keywords:</strong>
+                {% if assistant.metadata.description and assistant.metadata.description.keywords %}
+                    {% for keyword in assistant.metadata.description.keywords %}
+                        <span class="badge bg-light text-dark me-1 mb-1">{{ keyword }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <!-- Footer con Metadata -->
+            <div class="mt-auto d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    <i class="bi bi-clock"></i> 
+                    {% if assistant.creation_date %}
+                        Created: {{ assistant.creation_date|shortdate }}
+                    {% else %}
+                        Created: {{ assistant.created_at|shortdate }}
+                    {% endif %}
+                </small>
+                <small class="text-muted">
+                    <i class="bi bi-arrow-repeat"></i> 
+                    {% if assistant.last_update %}
+                        Updated: {{ assistant.last_update|shortdate }}
+                    {% else %}
+                        Updated: {{ assistant.updated_at|shortdate }}
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,22 @@
+<!-- Modal para mostrar YAML -->
+<div class="modal fade" id="yamlModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Assistant YAML</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-end mb-3">
+                    <button class="btn btn-outline-primary me-2" onclick="copyYamlToClipboard()">
+                        <i class="bi bi-clipboard"></i> Copy to Clipboard
+                    </button>
+                    <button class="btn btn-primary" onclick="downloadYaml()">
+                        <i class="bi bi-download"></i> Download
+                    </button>
+                </div>
+                <pre><code id="yamlContent" class="language-yaml"></code></pre>
+            </div>
+        </div>
+    </div>
+</div>

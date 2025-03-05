@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="auth-status" data-authenticated="{{ 'true' if current_user else 'false' }}"></div>
+<script>
+    window.userIsAuthenticated = document.getElementById('auth-status').dataset.authenticated === 'true';
+</script>
+<script src="//{{ request.headers.get('host') }}/static/js/home.js"></script>
+<!-- Hero Section -->
+<section class="hero-section text-center py-5">
+    <div class="container">
+        <div class="mb-4 text-center">
+            <img src="//{{ request.headers.get('host') }}/static/img/scolaia-lounge.png" alt="ScolaIA Lounge" class="img-fluid" style="max-width: 350px;">
+        </div>
+        <h2 class="display-4 mb-3">Create AI-powered Assistants</h2>
+        <p class="lead mb-4">Design, configure and deploy AI assistants for education, technical support or any unique challenge.</p>
+        <div class="mt-4">
+            <button id="getStartedBtn" class="btn btn-primary btn-lg action-btn start-btn me-3">
+                <i class="bi bi-rocket-takeoff-fill me-2"></i>
+                Get Started
+            </button>
+            <a href="/learn-more" class="btn btn-secondary btn-lg action-btn learn-btn">
+                <i class="bi bi-lightbulb-fill me-2"></i>
+                Learn More
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Main Features -->
+<section id="features" class="features-section py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5 text-dark">Main Features</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="bi bi-gear-fill display-4 text-teal mb-3"></i>
+                        <h3 class="card-title h4">Full Customization</h3>
+                        <p class="card-text text-dark">Configure easily every aspect of your assistant: behavior, commands, options and responses. Easily design complex instructions and have your assistant execute them with a single command. </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="bi bi-file-text-fill display-4 text-teal mb-3"></i>
+                        <h3 class="card-title h4">ADL Based</h3>
+                        <p class="card-text text-dark">Leverage a YAML-based Assistant Description Language to craft your assistant's configuration and details—no technical expertise needed!</p>
+                        <a href="/adl" class="btn btn-secondary action-btn learn-btn mt-3">
+                            <i class="bi bi-book-fill me-2"></i>
+                            Learn ADL
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="bi bi-arrow-left-right display-4 text-teal mb-3"></i>
+                        <h3 class="card-title h4">Easy Export & Import</h3>
+                        <p class="card-text text-dark">Export and import configurations to share or set up your assistants in ChatGPT or other AI-based educational environments, including ScolaIA!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section id="how-it-works" class="how-it-works-section py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">How It Works</h2>
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <img src="//{{ request.headers.get('host') }}/static/img/assistant-sample.png" alt="Assistant Example" class="img-fluid shadow rounded">
+            </div>
+            <div class="col-md-6">
+                <div class="steps-list">
+                    <div class="step d-flex align-items-start mb-4">
+                        <div class="step-number bg-teal text-white rounded-circle d-flex align-items-center justify-content-center me-3">1</div>
+                        <div>
+                            <h3 class="h5">Create an account</h3>
+                            <p>Sign up for free and access all features.</p>
+                        </div>
+                    </div>
+                    <div class="step d-flex align-items-start mb-4">
+                        <div class="step-number bg-teal text-white rounded-circle d-flex align-items-center justify-content-center me-3">2</div>
+                        <div>
+                            <h3 class="h5">Design your assistant</h3>
+                            <p>Use our visual editor or import assistant configurations made by others.</p>
+                        </div>
+                    </div>
+                    <div class="step d-flex align-items-start mb-4">
+                        <div class="step-number bg-teal text-white rounded-circle d-flex align-items-center justify-content-center me-3">3</div>
+                        <div>
+                            <h3 class="h5">Customize and adjust</h3>
+                            <p>Configure behaviors, commands and responses.</p>
+                        </div>
+                    </div>
+                    <div class="step d-flex align-items-start">
+                        <div class="step-number bg-teal text-white rounded-circle d-flex align-items-center justify-content-center me-3">4</div>
+                        <div>
+                            <h3 class="h5">Export and share</h3>
+                            <p>Share your configurations with other users.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="sharing-knowledge" class="sharing-knowledge-section py-5 bg-light">
+    <div class="container text-center">
+        <h2 class="text-center mb-4 text-dark">Sharing Knowledge to Improve Learning</h2>
+        <p class="lead text-dark">
+            Explore and benefit from assistants created by the community. Customize them to suit your needs, and share your own creations with others. 
+            <strong>Knowledge grows when shared!</strong>
+        </p>
+    </div>
+</section>
+
+<!-- PDL Section -->
+<section id="pdl" class="pdl-section py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5 text-dark">Assistant Description Language, the best way to design AI assistants</h2>
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="mb-4 text-dark">The Assistant Description Language that uses ScolaIA Lounge is a structured file with different sections to define exactly the behavior and possibilities of an agent. It's written in YAML format so it's easy to understand and edit, although ScolaIA Lounge makes the process much easier.</p>
+            </div>
+            <div class="col-md-6">
+                <img src="//{{ request.headers.get('host') }}/static/img/pdl_preview.png" alt="PDL Example" class="img-fluid shadow rounded">
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Estilos comunes para ambos botones */
+.action-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: none;
+    padding: 0.8rem 1.8rem;
+    font-weight: 500;
+}
+
+.action-btn i {
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Estilos específicos para el botón Get Started */
+.start-btn {
+    background: linear-gradient(135deg, var(--titles-color) 0%, #7d869c 100%);
+    color: white;
+}
+
+.start-btn:hover {
+    background: linear-gradient(135deg, #7d869c 0%, var(--titles-color) 100%);
+}
+
+.start-btn:hover i {
+    transform: translateY(-3px) rotate(-45deg);
+}
+
+/* Estilos específicos para el botón Learn More */
+.learn-btn {
+    background: #7d869c;
+    color: white;
+}
+
+.learn-btn:hover {
+    background: var(--titles-color);
+    color: white;
+}
+
+.learn-btn:hover i {
+    animation: pulse 1s infinite;
+    color: #FFD700;
+}
+
+/* Efecto de brillo para ambos botones */
+.action-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        to bottom right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(45deg);
+    transition: all 0.3s ease;
+    opacity: 0;
+}
+
+.action-btn:hover::after {
+    animation: shine 1.5s infinite;
+}
+
+@keyframes shine {
+    0% {
+        transform: rotate(45deg) translateX(-100%);
+        opacity: 0;
+    }
+    50% {
+        opacity: 0.3;
+    }
+    100% {
+        transform: rotate(45deg) translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+</style>
+{% endblock %} 
