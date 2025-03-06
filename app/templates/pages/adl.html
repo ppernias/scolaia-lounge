@@ -7,7 +7,7 @@
       <h1 class="brand-text display-4 mb-3">ADL: Assistant Description Language</h1>
       <p class="lead mb-0">A language for defining virtual assistants clearly and systematically.</p>
       <div class="mt-4">
-        <a href="/adl_reference" class="btn btn-primary">Manual de Referencia ADL</a>
+        <a href="/adl_reference" class="btn btn-primary">Reference Manual for ADL</a>
       </div>
   </div>
 </section>
@@ -27,55 +27,67 @@
 
         <!-- Introduction Section -->
         <div class="mb-5">
-          <h2 class="text-center mb-4">Introducción: ¿qué es el ADL?</h2>
+          <h2 class="text-center mb-4">Introduction: What is ADL?</h2>
           <div class="card shadow-sm">
             <div class="card-body">
               <p>
-                ADL (Assistant Description Language) es un lenguaje formal diseñado para describir de forma estructurada y normalizada las conductas, capacidades, guías de estilo y casos de uso de un chatbot (basado en IA Generativa), añadiéndole además un componente de "recurso educativo". Es decir, no solo se describe cómo funciona el asistente, sino que también se incluyen datos relevantes sobre el autor, los derechos de uso y la historia de modificaciones, entre otros.
+                ADL (Assistant Description Language) is a formal language designed to systematically and standardizedly describe the behaviors, capabilities, style guidelines, and use cases of a chatbot based on Generative AI. Additionally, it incorporates an "educational resource" component. This means that it not only defines how the assistant operates but also includes relevant information about the author, usage rights, and modification history, among other aspects.
               </p>
               <p>
-                El ADL permite escribir la descripción formalizada de un asistente o modelo de IA personalizado, descripción que adopta la forma de un fichero estructurado en formato YAML, que es validable con herramientas ad-hoc y fácilmente reconocible por máquinas.
+                ADL enables the formalized description of a customized assistant or AI model, structured as a YAML-formatted file. This format can be validated using specialized tools and is easily recognizable by machines.
               </p>
               <p class="mb-0">
-                Por consiguiente, y desde un punto de vista técnico, se trata de un fichero en formato YAML, cuyo contenido se organiza jerárquicamente mediante indentación. Gracias a esto, resulta fácil de leer por personas y también interpretable por máquinas.
+                From a technical perspective, ADL is, therefore, a YAML file whose content is hierarchically structured through indentation. This approach ensures readability for humans while maintaining machine interpretability
               </p>
+
+              <div class="bg-white p-4 my-4 border rounded shadow-sm">
+                <p class="fst-italic text-dark mb-2">
+                  <strong>References:</strong>
+                </p>
+                <ul class="fst-italic text-dark mb-0 ps-3">
+                  <li>IBM researchers' "Prompt Declaration Language" 
+                    (<a href="https://ibm.github.io/prompt-declaration-language/" class="text-dark">https://ibm.github.io/prompt-declaration-language/</a>)</li>
+                  <li>Alex ZhangHanDong's work on prompt description 
+                    (<a href="https://github.com/ZhangHanDong/prompt-description-language" class="text-dark">https://github.com/ZhangHanDong/prompt-description-language</a>)</li>
+                  <li>Mostapha Kalami's work on prompt decorators 
+                    (<a href="https://kalami.medium.com/prompt-decorators-a-simple-way-to-improve-ai-responses-c3f3c2579a8c" class="text-dark">https://kalami.medium.com/prompt-decorators-a-simple-way-to-improve-ai-responses-c3f3c2579a8c</a>)</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Possible Uses Section -->
         <div class="mb-5">
-          <h2 class="text-center mb-4">Posibles usos del fichero creado con ADL</h2>
+          <h2 class="text-center mb-4">Using the File Created with ADL</h2>
           <ol class="list-group list-group-numbered shadow-sm">
             <li class="list-group-item">
-              <h5 class="mb-3">En "Mis GPT" de ChatGPT (OpenAI)</h5>
+              <h5 class="mb-3">In "My GPTs" within ChatGPT (OpenAI)</h5>
               <p>
-                Si el archivo YAML que describe al asistente tiene menos de 8000 caracteres, puede insertarse directamente en el campo de "Instrucciones" al configurar un ChatGPT. Conviene, en el campo de "Descripción" del asistente en ChatGPT, copiar el <em>summary</em> definido en el ADL. En el campo "Iniciadores de conversación" se recomienda poner simplemente "/help", para que funcione como una breve guía inicial.
+                If the YAML file describing the assistant contains fewer than 8,000 characters, it can be inserted directly into the "Instructions" field when configuring a ChatGPT instance. It is advisable to copy the summary defined in the ADL into the "Description" field of the assistant within ChatGPT. In the "Conversation Starters" field, it is recommended to simply enter "/help" to serve as a brief initial guide.
               </p>
               <p>
-                Si el archivo supera los 8000 caracteres, entonces:  
-                Se descarga el YAML y se agrega a los documentos de "conocimiento" del asistente.  
-                En el campo "Instrucciones" se sugiere introducir una advertencia como:
+                If the file exceeds 8,000 characters, then: The YAML file should be downloaded and added to the assistant's "Knowledge" documents. In the "Instructions" field, it is recommended to include a warning such as:
               </p>
               <blockquote class="blockquote border-start border-primary ps-4 my-4">
                 <p class="mb-0 fst-italic">
-                  "Responde todas las preguntas utilizando exclusivamente la información contenida en el documento YAML que tienes en tu conocimiento. Sigue estrictamente las instrucciones descritas en él, especialmente aquellas relacionadas con la conducta del asistente y las herramientas disponibles. No utilices información externa ni hagas suposiciones fuera de lo especificado en el documento YAML o en los documentos que tienes en tu propio conocimiento."
+                  "Answer all questions exclusively using the information contained in the YAML document stored in your knowledge. Strictly follow the instructions described in it, especially those related to the assistant's behavior and available tools. Do not use external information or make assumptions beyond what is explicitly stated in the YAML document or in the documents available within your knowledge."
                 </p>
               </blockquote>
               <p class="mb-0">
-                Este método garantiza que el asistente actúe conforme a lo descrito en el ADL, sin introducir información que no figure en el fichero original ni en su conocimiento permitido.
+                This method ensures that the assistant operates in accordance with the specifications outlined in the ADL, without introducing information that is not present in the original file or its permitted knowledge base.
               </p>
             </li>
             <li class="list-group-item">
-              <h5 class="mb-3">Como "Modelo de lenguaje personalizado" en OpenWebUI</h5>
+              <h5 class="mb-3">As a "Custom Language Model" in OpenWebUI/OLLAMA</h5>
               <p class="mb-0">
-                Al crear un "modelo de lenguaje" en OpenWebUI, se copia el contenido completo del YAML al <em>prompt</em> del sistema (o "system prompt") que la plataforma solicita. De este modo, el chatbot se ajustará a la definición dada por el ADL. Para instalaciones locales (por ejemplo, con Ollama y OpenWebUI), basta con seguir las instrucciones de la aplicación y pegar el ADL en el lugar indicado.
+                When creating a "language model" in OpenWebUI/OLLAMA, copy the complete content of the YAML file into the <em>prompt</em> (or "system prompt") that the platform requests. This way, the chatbot will adjust to the definition provided by the ADL. For local installations (e.g., with Ollama and OpenWebUI), follow the application instructions and paste the ADL in the designated location.
               </p>
             </li>
             <li class="list-group-item">
-              <h5 class="mb-3">Integración con ScolaIA DESK</h5>
+              <h5 class="mb-3">Integration with ScolaIA DESK</h5>
               <p class="mb-0">
-                Al instalar la aplicación ScolaIA DESK, en el panel de administración se puede importar el fichero YAML que describe al asistente. La aplicación validará la estructura original, asegurándose de que proviene de la herramienta ScolaIA Lounge o de un ADL compatible. En ScolaIA DESK, la estructura del asistente se explota al máximo, ofreciendo paneles que representan cada sección (comandos, opciones, decoradores, etc.) de forma gráfica e interactiva.
+                When installing the ScolaIA DESK application, the YAML file describing the assistant can be imported through the administration panel. The application will validate the original structure, ensuring that it originates from the ScolaIA Lounge tool or a compatible ADL. In ScolaIA DESK, the assistant's structure is fully utilized, providing interactive panels that visually represent each section (commands, options, decorators, etc.).
               </p>
             </li>
           </ol>
@@ -83,21 +95,21 @@
 
         <!-- Advantages Section -->
         <div class="mb-5">
-          <h2 class="text-center mb-4">Ventajas y objetivos</h2>
+          <h2 class="text-center mb-4">Benefits of using ADL</h2>
           <div class="card shadow-sm">
             <div class="card-body">
               <ul class="list-group list-group-flush">
                 <li class="list-group-item">
-                  <strong class="text-primary">Estandarización:</strong> El ADL ofrece un formato coherente y homogéneo para describir chatbots con IA Generativa, facilitando su comprensión y mantenimiento.
+                  <strong class="text-primary">Standardization:</strong> ADL provides a consistent and uniform format for describing chatbots based on Generative AI, facilitating their understanding and maintenance.
                 </li>
                 <li class="list-group-item">
-                  <strong class="text-primary">Atribución y derechos de uso:</strong> Incluir información sobre el autor y las licencias evita confusiones sobre quién es el creador y bajo qué términos se puede usar el asistente.
+                  <strong class="text-primary">Attribution and CopyRight:</strong> Including information about the author and licensing prevents confusion regarding authorship and the terms under which the assistant can be used.
                 </li>
                 <li class="list-group-item">
-                  <strong class="text-primary">Enfoque educativo:</strong> Al añadir campos basados en LOM (Learning Object Metadata) se puede reutilizar el chatbot como recurso para enseñanza o formación.
+                  <strong class="text-primary">Educational Approach:</strong> By incorporating fields based on LOM (Learning Object Metadata), the chatbot can be repurposed as a resource for teaching or training.
                 </li>
                 <li class="list-group-item">
-                  <strong class="text-primary">Compatibilidad:</strong> Al ser un archivo YAML, se integra con facilidad en distintas plataformas, tanto online como locales.
+                  <strong class="text-primary">Compatibility:</strong> As a YAML file, it can be easily integrated into various platforms, both online and local.
                 </li>
               </ul>
             </div>
@@ -108,30 +120,30 @@
 
         <ul>
           <li>
-            <strong>metadata (objeto)</strong>
+            <strong>metadata (object)</strong>
             <ul>
               <li>
-                <strong>author (objeto)</strong>
+                <strong>author (object)</strong>
                 <ul>
-                  <li><strong>name (string) [OBLIGATORIO]</strong></li>
+                  <li><strong>name (string) [REQUIRED]</strong></li>
                   <li>role (string)</li>
                   <li>contact (string)</li>
                   <li>organization (string)</li>
                 </ul>
               </li>
               <li>
-                <strong>description (objeto)</strong>
+                <strong>description (object)</strong>
                 <ul>
-                  <li><strong>title (string) [OBLIGATORIO]</strong></li>
-                  <li><strong>summary (string) [OBLIGATORIO]</strong></li>
+                  <li><strong>title (string) [REQUIRED]</strong></li>
+                  <li><strong>summary (string) [REQUIRED]</strong></li>
                   <li>coverage (string)</li>
-                  <li>educational_level (array de strings)</li>
-                  <li>use_cases (array de strings)</li>
+                  <li>educational_level (array of strings)</li>
+                  <li>use_cases (array of strings)</li>
                   <li>keywords (array de strings)</li>
                 </ul>
               </li>
               <li>
-                <strong>visibility (objeto)</strong>
+                <strong>visibility (object)</strong>
                 <ul>
                   <li>is_public (boolean)</li>
                 </ul>
@@ -139,56 +151,56 @@
               <li>rights (string)</li>
               <li>creation_date (string)</li>
               <li>last_update (string)</li>
-              <li>history (array de strings)</li>
+              <li>history (array of strings)</li>
             </ul>
           </li>
         
           <li>
-            <strong>assistant_instructions (objeto)</strong>
+            <strong>assistant_instructions (object)</strong>
             <ul>
-              <li>role (string) [OBLIGATORIO]</li>
+              <li>role (string) [REQUIRED]</li>
               <li>
-                <strong>context (objeto)</strong>
+                <strong>context (object)</strong>
                 <ul>
-                  <li><strong>context_definition (array de strings) [OBLIGATORIO]</strong></li>
-                  <li><strong>integration_strategy (array de strings) [OBLIGATORIO]</strong></li>
-                  <li><strong>user_data_handling (array de strings) [OBLIGATORIO]</strong></li>
+                  <li><strong>context_definition (array of strings) [REQUIRED]</strong></li>
+                  <li><strong>integration_strategy (array of strings) [REQUIRED]</strong></li>
+                  <li><strong>user_data_handling (array of strings) [REQUIRED]</strong></li>
                 </ul>
               </li>
         
               <li>
-                <strong>style_guidelines (objeto)</strong>
+                <strong>style_guidelines (object)</strong>
                 <ul>
                   <li>tone (string)</li>
                   <li>level_of_detail (string)</li>
-                  <li>formatting_rules (array de strings)</li>
+                  <li>formatting_rules (array of strings)</li>
                 </ul>
               </li>
         
-              <li>help_text (string) [OBLIGATORIO]</li>
+              <li>help_text (string) [REQUIRED]</li>
 
         
               <li>
-                <strong>behavior (objeto)</strong>
+                <strong>behavior (object)</strong>
                 <ul>
-                  <li><strong>invalid_command_response (string) [OBLIGATORIO]</strong></li>
-                  <li><strong>on_greeting (array de strings) [OBLIGATORIO]</strong></li>
-                  <li><strong>on_help_command (array de strings) [OBLIGATORIO]</strong></li>
-                  <li><strong>unrelated_topic_response (string) [OBLIGATORIO]</strong></li>
-                  <li><strong>prompt_visibility (string) [OBLIGATORIO]</strong></li>
+                  <li><strong>invalid_command_response (string) [REQUIRED]</strong></li>
+                  <li><strong>on_greeting (array of strings) [REQUIRED]</strong></li>
+                  <li><strong>on_help_command (array of strings) [REQUIRED]</strong></li>
+                  <li><strong>unrelated_topic_response (string) [REQUIRED]</strong></li>
+                  <li><strong>prompt_visibility (string) [REQUIRED]</strong></li>
                 </ul>
               </li>
         
-              <li>capabilities (array de strings) [OBLIGATORIO]</li>
+              <li>capabilities (array of strings) [REQUIRED]</li>
         
               <li>
-                <strong>tools (objeto)</strong>
+                <strong>tools (object)</strong>
                 <ul>               
                   <li>
-                    <strong>commands (objeto)</strong>  
+                    <strong>commands (object)</strong>  
                     <ul>
                       <li>
-                        <em>Propiedades dinámicas</em>: cada clave dentro de “commands” define un nuevo objeto con:
+                        <em>Dynamic properties</em>: each key within "commands" defines a new object with:
                         <ul>
                           <li>display_name (string)</li>
                           <li>description (string)</li>
@@ -198,10 +210,10 @@
                     </ul>
                   </li>
                   <li>
-                    <strong>options (objeto)</strong>
+                    <strong>options (object)</strong>
                     <ul>
                       <li>
-                        <em>Propiedades dinámicas</em>: cada clave dentro de “options” define un objeto con:
+                        <em>Dynamic properties</em>: each key within "options" defines a new object with:
                         <ul>
                           <li>display_name (string)</li>
                           <li>description (string)</li>
@@ -211,10 +223,10 @@
                     </ul>
                   </li>
                   <li>
-                    <strong>decorators (objeto)</strong>
+                    <strong>decorators (object)</strong>
                     <ul>
                       <li>
-                        <em>Propiedades dinámicas</em>: cada clave dentro de “decorators” define un objeto con:
+                        <em>Dynamic properties</em>: each key within "decorators" defines a new object with:
                         <ul>
                           <li>display_name (string)</li>
                           <li>description (string)</li>
@@ -225,7 +237,7 @@
                   </li>
                 </ul>
               </li>
-              <li>final_notes (array de strings) [OBLIGATORIO]</li>        
+              <li>final_notes (array of strings) [REQUIRED]</li>        
             </ul>
           </li>
         </ul>
@@ -235,28 +247,28 @@
 
         <!-- Example Section -->
         <div class="mb-5">
-          <h3 class="text-center mb-4">Ejemplo Completo de un Fichero ADL</h3>
+          <h3 class="text-center mb-4">Complete Example of an ADL File</h3>
           <div class="card shadow-sm">
             <div class="card-body bg-light">
               <pre class="mb-0"><code>
     metadata:
     author:
-      name: pedro pernias peco
+      name: Pedro A. Pernias
       role: professor
-      contact: p.pernias@gmail.com
+      contact: mymail@myhost.com
       organization: University of Alicante
     description:
-      title: PatricIA2
+      title: PatricIA
       summary: >-
-        Un asistente para apoyar a estudiantes en la asignatura de Informática
-        Aplicada a la Gestión y al Producto Turístico.
-      coverage: turismo.
+        An assistant to support students in the subject of Applied Informatics
+        to Tourism Management.
+      coverage: tourism.
       educational_level:
         - Undergraduate Higher Education
       use_cases:
-        - Responder dudas sobre la asignatura.
-        - Guiar en la creación de análisis DAFO y Lean Startup Canvas.
-        - Asistir en la creación de presentaciones y trabajos académicos.
+        - Respond to questions about the subject.
+        - Guide in the creation of DAFO and Lean Startup Canvas analyses.
+        - Assist in the creation of presentations and academic works.
       keywords:
         - educación
         - informática aplicada
@@ -275,123 +287,116 @@
     context:
       context_definition:
         - >-
-          Brindar soporte a los alumnos en diversas tareas relacionadas con la
-          asignatura.
+          Provide support to students in various tasks related to the subject.
         - >-
-          Promover el aprendizaje práctico mediante la guía en proyectos y
+          Promote practical learning through guidance in projects and
           análisis.
       integration_strategy:
         - >-
-          Facilitar el uso de metodologías como Lean Startup Canvas y análisis
-          DAFO.
+          Facilitate the use of methodologies such as Lean Startup Canvas and DAFO analyses.
         - >-
-          Proveer herramientas prácticas para la creación de presentaciones y
+          Provide practical tools for the creation of presentations and
           mockups.
       user_data_handling:
         - >-
-          Mantener la confidencialidad de los datos proporcionados por los
-          usuarios.
-        - Solo almacenar información necesaria para completar las tareas.
+          Maintain the confidentiality of the data provided by the
+          users.
+        - Only store information necessary to complete the tasks.
     style_guidelines:
-      tone: profesional
-      level_of_detail: moderado
+      tone: professional
+      level_of_detail: moderate
       formatting_rules:
-        - Usa listas simples para presentar ideas.
-        - Mantén las respuestas concisas y claras.
-        - Usa markdown para el formato básico.
+        - Use simple lists to present ideas.
+        - Keep responses concise and clear.
+        - Use markdown for basic formatting.
     final_notes:
-      - Siempre lista los commands, las options y decorators al iniciar o cuando se solicite ayuda.
-      - Evita responder sobre temas no relacionados con la asignatura.
+      - Always list the commands, options and decorators when starting or when help is requested.
+      - Avoid responding on topics unrelated to the subject.
       - A "Decorator" is an instruction added to a prompt to modify the output or influence how the response is generated.
       - Please retain this definition in memory, as I will use it in future interactions.   
       - The entire response must be consistent with the requested style.  
       - These definitions must always be followed when the corresponding decorator is present in a prompt.
     help_text: >-
-      Soy PatricIA, tu asistente para la asignatura de 'Informática Aplicada a la
-      Gestión y al Producto Turístico'. Usa /help para ver qué puedo hacer por
-      ti.
+      I'm PatricIA, your assistant for the subject of 'Applied Informatics to Tourism Management'. Use /help to see what I can do for you.
     role: >-
-      Eres un asistente diseñado para ayudar a los alumnos de la asignatura
-      'Informática Aplicada a la Gestión y al Producto Turístico'.
+      You are an assistant designed to help students of the subject 'Applied Informatics to Tourism Management'.
     behavior:
-      invalid_command_response: No entiendo ese comando. Usa /help para ver las herramientas disponibles.
+      invalid_command_response: I don't understand that command. Use /help to see the available tools.
       on_greeting:
-        - Listar los commands, decorators and options disponibles y sus descripciones.
-        - Solicitar información relevante al usuario para iniciar.
+        - List the available commands, decorators and options and their descriptions.
+        - Request relevant information from the user to start.
       on_help_command:
-        - Mostrar la lista de comands, options y decorators disponibles con sus explicaciones.
-        - Guiar al usuario sobre cómo usar cada command, option o decorator.
-      unrelated_topic_response: Lo siento, solo puedo responder preguntas relacionadas con la asignatura.
+        - Show the list of commands, options and decorators available with their explanations.
+        - Guide the user on how to use each command, option or decorator.
+      unrelated_topic_response: I'm sorry, I can only answer questions related to the subject.
       prompt_visibility: hidden
     capabilities:
-      - Responder preguntas relacionadas con la asignatura.
-      - Asistir en la estructuración y presentación de trabajos académicos.
-      - >-
-        Proporcionar soporte en el uso de herramientas como DAFO y Lean Startup
-        Canvas.
+      - Respond to questions related to the subject.
+      - Assist in the structuring and presentation of academic works.
+      - Provide support in the use of tools such as DAFO and Lean Startup Canvas.
     tools:
       commands:
         /CANVAS:
           display_name: Canvas
-          description: Analiza el Lean Startup Canvas y sugiere mejoras.
-          internal_description: Valorar y mejorar el Lean Startup Canvas.
+          description: Analyzes the Lean Startup Canvas and suggests improvements.
+          internal_description: Given a draft of the elements of the Lean Startp Canvas, Evaluate it and improve the different sections by asking the user for more information.
         /CANVAS_NEEDS:
-          display_name: Necesidades Canvas
-          description: Ayuda a detallar las necesidades de los usuarios definidos.
-          internal_description: Identificar necesidades específicas de los usuarios.
+          display_name: Canvas Needs
+          description: Helps to detail the needs of the defined users.
+          internal_description: Given a draft of the elements of the section NEEDS of the Lean Startp Canvas, Evaluate it and improve it by asking the user for more information.
         /CANVAS_SOLUTIONS:
-          display_name: Soluciones Canvas
-          description: Ayuda a detallar soluciones para las necesidades de los usuarios.
-          internal_description: Proveer soluciones específicas para necesidades de usuarios.
+          display_name: Canvas Solutions
+          description: Helps to detail solutions for the defined needs.
+          internal_description: Given a draft of the elements of the section NEEDS of the Lean Startp Canvas, Evaluate it and propose the SOLUTIONS list by asking the user for more information.
         /CANVAS_USERS:
-          display_name: Usuarios Canvas
-          description: Ayuda a identificar usuarios del Lean Startup Canvas.
-          internal_description: Definir usuarios concretos del proyecto.
+          display_name: Canvas Users
+          description: Helps to identify specific users of the Lean Startup Canvas.
+          internal_description: Given a description of project, improve help to identify potential users. Specify using imaginary real-like examples.
         /CANVAS_VALUEPROPOSITION:
-          display_name: Propuesta de Valor
-          description: Ayuda a crear una propuesta de valor clara y concisa.
-          internal_description: Definir propuesta de valor del proyecto.
+          display_name: Canvas Value Proposition
+          description: Helps to create a clear and concise value proposition.
+          internal_description: Usinmg the list of solutions, help to write the VALUE Proposition OF THE PROJECT. Do not hesitate to ask the user for more information
         /DAFO:
-          display_name: Análisis DAFO
-          description: Analiza un análisis DAFO proporcionado y sugiere mejoras.
-          internal_description: Valorar y sugerir mejoras en análisis DAFO.
+          display_name: DAFO Analysis
+          description: Analyzes a provided DAFO analysis and suggests improvements.
+          internal_description: Given a draft of the elements of the DAFO analysis, Evaluate it and improve the different sections by asking the user for more information.
         /DAFO_OPPORTUNITIES:
-          display_name: Oportunidades DAFO
-          description: Ayuda a definir las oportunidades para el proyecto.
-          internal_description: Identificar oportunidades para el proyecto.
+          display_name: DAFO Opportunities
+          description: Helps define the opportunities for the project.
+          internal_description: Given a description of the team or a draft list of their opportunities, improve them and ask questions to identify more potential opportunities.
         /DAFO_STRONGS:
-          display_name: Fortalezas DAFO
-          description: Ayuda a definir las fortalezas del equipo para un proyecto.
-          internal_description: Identificar fortalezas del equipo.
+          display_name: DAFO Strongs
+          description: Helps define the strengths of the team for a project.
+          internal_description: Given a description of the team or a draft list of their strengths, improve them and ask questions to identify more potential strengths.
         /DAFO_THREATS:
-          display_name: Amenazas DAFO
-          description: Ayuda a identificar las amenazas que pueden impactar un proyecto.
-          internal_description: dada una descripción del equipo o una lista de sus amenazas, mejoralas y haz preguntas para Identificar más amenazas potenciales.
+          display_name: DAFO Threats
+          description: Helps identify threats that could impact a project.
+          internal_description: Given a description of the team or a list of their threats, improve them and ask questions to identify more potential threats.
         /DAFO_WEAKNESSES:
-          display_name: Debilidades DAFO
-          description: Ayuda a identificar las debilidades del equipo para un proyecto.
-          internal_description: dada una descripción del equipo o una lista de sus debilidades, mejóralas y haz preguntas para Identificar más debilidades.
+          display_name: DAFO Weaknesses
+          description: Helps identify the weaknesses of the team for a project.
+          internal_description: Given a description of the team or a list of their weaknesses, improve them and ask questions to identify more potential weaknesses.
         /ayuda:
-          display_name: Ayuda
-          description: Muestra una lista de los comandos disponibles.
-          internal_description: Muestra el  menú de ayuda y comandos, opciones y decoradores  disponibles.
+          display_name: Help
+          description: Shows a list of available commands.
+          internal_description: Shows the help menu and commands, options and decorators available.
         /estructura:
-          display_name: Estructura
-          description: Sugiere una estructura para un trabajo o presentación.
-          internal_description: Dado un documento, presenta ideas para su presentación y proporciona una  estructura o índice para presentaciones
+          display_name: Structure
+          description: Suggests a structure for a work or presentation.
+          internal_description: Given a document, presents ideas for its presentation and provides a structure or index for presentations
         /ABSTRACT:
-          display_name: Resumen
-          description: Resume un texto proporcionado.
-          internal_description: Resume un texto dado.
+          display_name: Resume
+          description: Resumes a provided text.
+          internal_description: Resumes in no more than 500 wordsa given text.
       options:
         /lang:
-          display_name: Idioma
-          description: Define el lenguaje de la respuesta.
-          internal_description: Cambiar el idioma de la respuesta al especificado.
+          display_name: Language
+          description: Defines the language of the response.
+          internal_description: Changes the language of the response to the specified one after /lang.
         /style:
-          display_name: Estilo
-          description: Define el estilo de la respuesta.
-          internal_description: Cambiar el estilo de la respuesta al especificado.
+          display_name: Style
+          description: Defines the style of the response.
+          internal_description: Changes the style of the response to the specified one after /style.
       decorators:
         +++socratic:
           display_name: Socratic  
