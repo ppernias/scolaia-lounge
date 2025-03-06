@@ -8,7 +8,7 @@ from datetime import datetime
 from sqlalchemy import func, text
 
 from ..database.database import get_db
-from ..database.models import Assistant, AssistantLike, User
+from ..database.models import Assistant, AssistantLike, User, UserAssistantCollection
 from ..utils.filters import datetime_filter
 from .auth import get_current_user, get_current_user_optional
 from ..utils.history_utils import extract_dates_from_history
@@ -256,9 +256,9 @@ async def get_assistant_details(
         # Check if the user has this assistant in their collection
         in_collection = False
         if current_user:
-            collection_entry = db.query(AssistantCollection).filter(
-                AssistantCollection.user_id == current_user.id,
-                AssistantCollection.assistant_id == assistant_id
+            collection_entry = db.query(UserAssistantCollection).filter(
+                UserAssistantCollection.user_id == current_user.id,
+                UserAssistantCollection.assistant_id == assistant_id
             ).first()
             in_collection = collection_entry is not None
         
@@ -290,6 +290,10 @@ async def get_assistant_details(
             'updated_at': assistant.updated_at,
             'creation_date': dates['creation_date'],
             'last_update': dates['last_update'],
+            'history': history,
+            'metadata': {
+                'rights': metadata.get('rights', 'Not specified')
+            },
             'yaml_content': assistant.yaml_content
         }
     except Exception as e:

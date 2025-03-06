@@ -26,17 +26,22 @@ function toggleSummary(buttonElement) {
 // Modal de detalles del asistente
 async function showAssistantDetails(assistantId) {
     try {
-        const response = await fetch(`/explore/assistant/${assistantId}/details`);
+        const response = await fetch(`/explore/assistant/${assistantId}`);
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+        
+        // Debug log
+        console.log('Assistant details data:', data);
         
         // Función auxiliar para actualizar elementos de forma segura
         const safeSetText = (elementId, value) => {
             const element = document.getElementById(elementId);
             if (element) {
                 element.textContent = value || '';
+            } else {
+                console.warn(`Element with id ${elementId} not found`);
             }
         };
 
@@ -44,6 +49,8 @@ async function showAssistantDetails(assistantId) {
             const element = document.getElementById(elementId);
             if (element) {
                 element.innerHTML = value || '';
+            } else {
+                console.warn(`Element with id ${elementId} not found`);
             }
         };
         
@@ -65,22 +72,6 @@ async function showAssistantDetails(assistantId) {
                 .join(' ');
         }
         
-        // Use Cases
-        const useCasesContainer = document.getElementById('modalUseCases');
-        if (useCasesContainer) {
-            useCasesContainer.innerHTML = (data.use_cases || [])
-                .map(useCase => `<li>• ${useCase}</li>`)
-                .join('');
-        }
-
-        // History
-        const historyContainer = document.getElementById('modalHistory');
-        if (historyContainer) {
-            historyContainer.innerHTML = (data.history || [])
-                .map(item => `<li>• ${item}</li>`)
-                .join('');
-        }
-        
         // Educational Levels
         const educationalLevelsContainer = document.getElementById('modalEducationalLevels');
         if (educationalLevelsContainer) {
@@ -88,26 +79,31 @@ async function showAssistantDetails(assistantId) {
                 .map(level => `<li>• ${level}</li>`)
                 .join('');
         }
-        
-        // Tools
-        const toolsContainer = document.getElementById('modalTools');
-        if (toolsContainer) {
-            toolsContainer.innerHTML = (data.tools || [])
-                .map(tool => `<li>• ${tool}</li>`)
+
+        // History - Asegurarse de que history existe en los datos
+        const historyContainer = document.getElementById('modalHistory');
+        if (historyContainer) {
+            const history = data.history || [];
+            historyContainer.innerHTML = history
+                .map(item => `<li>• ${item}</li>`)
                 .join('');
         }
 
         // Metadata
-        safeSetText('modalCreationDate', new Date(data.created_at).toLocaleDateString());
-        safeSetText('modalLastUpdate', new Date(data.updated_at).toLocaleDateString());
+        if (data.created_at) {
+            safeSetText('modalCreationDate', new Date(data.created_at).toLocaleDateString());
+        }
+        if (data.updated_at) {
+            safeSetText('modalLastUpdate', new Date(data.updated_at).toLocaleDateString());
+        }
         safeSetText('modalRights', data.metadata?.rights || 'Not specified');
 
         // Mostrar el modal
         const modal = new bootstrap.Modal(document.getElementById('assistantDetailsModal'));
         modal.show();
     } catch (error) {
-        console.error('Error:', error);
-        showToast('error', 'Error loading assistant details');
+        console.error('Error in showAssistantDetails:', error);
+        showToast('error', `Error loading assistant details: ${error.message}`);
     }
 }
 
