@@ -65,7 +65,7 @@ pip install -r requirements.txt
 
 4. Start the server:
 ```bash
-python run.py
+python3 run.py
 ```
 Or alternatively:
 ```bash
@@ -163,3 +163,26 @@ sudo yum install -y python3-devel libyaml-devel
   - Make encrypted data unreadable
 - Store production secrets securely
 - Never commit the `assistants.db` file to version control 
+
+# Initial Configuration
+The first user to register will be considered the administrator. They will have access to all areas of the system except the decrypted information about users' passwords.
+
+An administrator can assign or revoke the administrator level to other administrators.
+
+## Getting Started:
+
+-   Once the administrator has registered, they must go to the “settings” option and fill in the fields in the general tab: “owner_email,” “owner_name,” and “owner_organization.” These fields are required to later configure the service for sending emails to users.
+
+- Next, it is recommended to fill in the requested data in the “Mail” tab in order to activate the email sending service. After doing so, test the service by clicking on “Test eMail” in the settings section.
+
+- Then, you should enter the API KEY obtained from OpenAI (https://platform.openai.com → settings → API Keys).
+
+- After entering the openapi_apikey, click on “Test OpenAI” to load the available models, and then edit the “openai_model” field.
+
+- The other fields are optional and can be used if, instead of using the OpenAI API service, you use another compatible service.
+
+- If using a local API service based on Ollama/OpenWebUI, you must fill in the Ollama tab. You can also test it by clicking on “Test Ollama” in the settings.
+
+- The Improve tab is used to modify the prompt-assistant and tools improvement service using the configured API connection.
+
+- The administrator must also complete their profile by going to “My Profile” and filling in any missing information.
