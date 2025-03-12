@@ -4,6 +4,7 @@
         <input type="hidden" id="currentAssistantId" value="{{ assistant.id if assistant else '' }}">
         <input type="hidden" id="currentUsername" value="{{ current_user.username }}">
         <input type="hidden" id="currentFullName" value="{{ current_user.full_name }}">
+        <input type="hidden" id="editorMode" value="edit">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editYamlModalLabel">Edit Assistant YAML</h5>

@@ -114,6 +114,7 @@ async function saveYamlChanges() {
     const assistantId = document.getElementById('currentAssistantId').value;
     const createNewVersion = document.getElementById('createNewVersion').checked;
     const minorChangesCheckbox = document.getElementById('minorChanges');
+    const editorMode = document.getElementById('editorMode').value;
     
     // Verificar el límite de caracteres antes de guardar
     const saveButton = document.querySelector('#editYamlModal .btn-primary');
@@ -146,23 +147,31 @@ async function saveYamlChanges() {
         // Get form data
         const formData = getFormData();
         
-        // Check for major changes
-        const originalYaml = document.getElementById('yamlEditor').value;
-        if (hasMajorChanges(originalYaml, formData)) {
-            minorChangesCheckbox.checked = false;
-            minorChangesCheckbox.disabled = true;
+        // Check for major changes (solo si estamos en modo edición)
+        if (editorMode === 'edit') {
+            const originalYaml = document.getElementById('yamlEditor').value;
+            if (hasMajorChanges(originalYaml, formData)) {
+                minorChangesCheckbox.checked = false;
+                minorChangesCheckbox.disabled = true;
+            }
         }
         
         const yamlData = jsyaml.load(formData);
         
-        // Update history only for major changes
-        if (!minorChangesCheckbox.checked) {
+        // Update history only for major changes or new assistants
+        if (editorMode === 'create' || !minorChangesCheckbox.checked) {
             const currentDate = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
             
             if (!yamlData.metadata) yamlData.metadata = {};
             if (!yamlData.metadata.history) yamlData.metadata.history = [];
             
-            const newEntry = `Updated by ${fullName} on ${currentDate}`;
+            // Si es una creación, añadir entrada de creación
+            let newEntry;
+            if (editorMode === 'create') {
+                newEntry = `Created by ${fullName} on ${currentDate}`;
+            } else {
+                newEntry = `Updated by ${fullName} on ${currentDate}`;
+            }
             
             // Check if last entry is similar (ignoring case)
             const lastEntry = yamlData.metadata.history[yamlData.metadata.history.length - 1];
@@ -178,16 +187,31 @@ async function saveYamlChanges() {
         // Convert back to YAML
         const updatedYaml = jsyaml.dump(yamlData);
         
+        // Determinar endpoint y método según el modo
+        let endpoint, method, requestBody;
+        
+        if (editorMode === 'create') {
+            endpoint = '/assistants/create';
+            method = 'POST';
+            requestBody = JSON.stringify({
+                yaml_content: updatedYaml
+            });
+        } else {
+            endpoint = `/assistants/${assistantId}/yaml`;
+            method = 'PUT';
+            requestBody = JSON.stringify({
+                yaml_content: updatedYaml,
+                create_new_version: createNewVersion
+            });
+        }
+        
         // Send to server
-        const response = await fetch(`/assistants/${assistantId}/yaml`, {
-            method: 'PUT',
+        const response = await fetch(endpoint, {
+            method: method,
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                yaml_content: updatedYaml,
-                create_new_version: createNewVersion
-            })
+            body: requestBody
         });
 
         if (!response.ok) {
@@ -196,12 +220,31 @@ async function saveYamlChanges() {
         }
 
         const data = await response.json();
-        showToast('success', data.message || 'Changes saved successfully');
         
-        // If new version created, redirect to it
-        if (data.id) {
+        // Mostrar mensaje de éxito
+        if (editorMode === 'create') {
+            showToast('success', 'Assistant created successfully');
+        } else {
+            showToast('success', data.message || 'Changes saved successfully');
+        }
+        
+        // Cerrar el modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('editYamlModal'));
+        if (modal) {
+            modal.hide();
+        }
+        
+        // Redireccionar según el resultado
+        if (editorMode === 'create') {
+            // Si es una creación, redirigir a la página principal de asistentes
+            setTimeout(() => {
+                window.location.href = '/assistants/';
+            }, 1000);
+        } else if (data.id) {
+            // Si es una nueva versión, redirigir a ella
             window.location.href = `/assistants/${data.id}`;
         } else {
+            // En otros casos, recargar la página
             window.location.reload();
         }
     } catch (error) {
@@ -226,26 +269,20 @@ async function createNewAssistant() {
             throw new Error('Failed to fetch default template');
         }
         const defaultTemplate = await response.text();
-
-        // Create a new assistant with the default template
-        const createResponse = await fetch('/assistants/create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                yaml_content: defaultTemplate
-            })
-        });
-
-        if (!createResponse.ok) {
-            throw new Error('Failed to create assistant');
-        }
-
-        const { assistant_id } = await createResponse.json();
         
-        // Now open the editor for the newly created assistant
-        editYamlContent(assistant_id);
+        // Cargar la plantilla en el editor sin crear el asistente todavía
+        document.getElementById('yamlEditor').value = defaultTemplate;
+        
+        // Marcar que estamos en modo creación
+        document.getElementById('editorMode').value = 'create';
+        
+        // Abrir el modal de edición
+        const modal = new bootstrap.Modal(document.getElementById('editYamlModal'));
+        modal.show();
+        
+        // Cargar los campos del formulario con los valores predeterminados
+        const yamlData = jsyaml.load(defaultTemplate);
+        loadFormFields(yamlData);
     } catch (error) {
         console.error('Error:', error);
         showToast('error', `Error creating assistant: ${error.message}`);
@@ -325,11 +362,11 @@ async function loadFormFields(data) {
             addKeywordElement(keyword);
         });
 
-        // Author
-        document.getElementById('authorName').value = data.metadata?.author?.name || profileData?.full_name || '';
-        document.getElementById('authorRole').value = data.metadata?.author?.role || '';
-        document.getElementById('authorContact').value = data.metadata?.author?.contact || profileData?.email || '';
-        document.getElementById('authorOrganization').value = data.metadata?.author?.organization || '';
+        // Author - Siempre usar los datos del perfil del usuario actual
+        document.getElementById('authorName').value = profileData?.full_name || '';
+        document.getElementById('authorRole').value = profileData?.role || data.metadata?.author?.role || '';
+        document.getElementById('authorContact').value = profileData?.email || '';
+        document.getElementById('authorOrganization').value = profileData?.organization || '';
 
         // Visibility
         document.getElementById('assistantVisibility').checked = data.metadata?.visibility?.is_public !== false;
