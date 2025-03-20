@@ -162,4 +162,58 @@ sudo yum install -y python3-devel libyaml-devel
   - Invalidate all existing sessions
   - Make encrypted data unreadable
 - Store production secrets securely
+<<<<<<< HEAD
 - Never commit the `assistants.db` file to version control 
+=======
+- Never commit the `assistants.db` file to version control 
+
+# Initial Configuration
+The first user to register will be considered the administrator. They will have access to all areas of the system except the decrypted information about users' passwords.
+
+An administrator can assign or revoke the administrator level to other administrators.
+
+## Getting Started:
+
+-   Once the administrator has registered, they must go to the “settings” option and fill in the fields in the general tab: “owner_email,” “owner_name,” and “owner_organization.” These fields are required to later configure the service for sending emails to users.
+
+- Next, it is recommended to fill in the requested data in the “Mail” tab in order to activate the email sending service. After doing so, test the service by clicking on “Test eMail” in the settings section.
+
+- Then, you should enter the API KEY obtained from OpenAI (https://platform.openai.com → settings → API Keys).
+
+- After entering the openapi_apikey, click on “Test OpenAI” to load the available models, and then edit the “openai_model” field.
+
+- The other fields are optional and can be used if, instead of using the OpenAI API service, you use another compatible service.
+
+- If using a local API service based on Ollama/OpenWebUI, you must fill in the Ollama tab. You can also test it by clicking on “Test Ollama” in the settings.
+
+- The Improve tab is used to modify the prompt-assistant and tools improvement service using the configured API connection.
+
+- The administrator must also complete their profile by going to “My Profile” and filling in any missing information.
+
+## License of Use: Apache 2.0 @2025, Pedro A Pernias
+
+1. Grant of Rights
+
+You are free to use, copy, modify, and distribute covered works, including for commercial purposes.
+You do not have to release your modifications under the same license, but you must maintain the required notices and disclaimers.
+
+2. Patent Protection
+
+The license includes a patent grant: contributors automatically provide users with a license to their patents related to the contributed code.
+This grant terminates if you engage in a patent lawsuit claiming that the software infringes your patents.
+
+3. Requirements and Notices
+
+You must include a copy of the Apache License 2.0 and the original copyright statements with any copies or substantial portions of the software.
+If you modify the software, you should note significant changes in your source files.
+
+4. Disclaimer of Warranty and Limitation of Liability
+
+The software is provided “as is,” without warranties or conditions of any kind.
+Neither the authors nor contributors accept liability for any damages arising from its use.
+
+5. Trademark Use
+
+The license does not grant permission to use contributors’ trademarks. Separate permission may be required.
+For full details, please refer to the Apache License 2.0 text. If you have specific concerns, consult a qualified legal professional.
+>>>>>>> a23228ae31fda26b4cfbcd8b1bfe73e1db7607ec
