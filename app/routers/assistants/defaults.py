@@ -4,31 +4,20 @@ import yaml
 import os
 from pathlib import Path
 from typing import Dict, Any
+from app.utils.defaults_manager import get_defaults_manager
 
 router = APIRouter()
 
 @router.get("/defaults", response_class=PlainTextResponse)
 async def get_defaults():
     try:
-        # Get the root directory of the project
-        root_dir = Path(__file__).parent.parent.parent.parent
-        defaults_path = root_dir / "defaults.yaml"
+        # Usar el DefaultsManager para obtener los valores predeterminados del schema.yaml
+        defaults_manager = get_defaults_manager()
+        defaults = defaults_manager.load_defaults()
         
-        # Check if file exists
-        if not defaults_path.exists():
-            raise HTTPException(status_code=404, detail="defaults.yaml not found")
-            
-        # Read the file as text
-        with open(defaults_path, 'r', encoding='utf-8') as file:
-            yaml_content = file.read()
-            
-        # Validate that it's valid YAML
-        try:
-            yaml.safe_load(yaml_content)
-        except yaml.YAMLError as e:
-            raise HTTPException(status_code=500, detail=f"Invalid YAML format: {str(e)}")
-            
+        # Convertir a formato YAML
+        yaml_content = yaml.safe_dump(defaults, default_flow_style=False, sort_keys=False)
+        
         return yaml_content
-        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Error loading defaults from schema: {str(e)}")

@@ -98,7 +98,7 @@ logger = setup_logging()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Cargar defaults al inicio
-    defaults_manager = get_defaults_manager(os.path.join(BASE_DIR, "defaults.yaml"))
+    defaults_manager = get_defaults_manager(os.path.join(BASE_DIR, "schema.yaml"))
     defaults_manager.load_defaults()
     
     config_status = check_configuration()

@@ -36,7 +36,14 @@ function formatYaml(yaml) {
             indent: 2,
             lineWidth: -1,
             noRefs: true,
-            sortKeys: false
+            sortKeys: false,
+            quotingType: '"',        // Usar comillas dobles (ASCII) para todos los strings
+            noCompatMode: true,      // Modo moderno de YAML
+            forceQuotes: false,       // No forzar comillas para permitir formato multilínea
+            flowLevel: -1,           // Mantener formato de bloque para estructuras anidadas
+            styles: {
+                '!!str': 'double'    // Asegurar que todos los strings usen comillas dobles
+            }
         });
     } catch (e) {
         console.error('Error formatting YAML:', e);
@@ -185,7 +192,17 @@ async function saveYamlChanges() {
         }
         
         // Convert back to YAML
-        const updatedYaml = jsyaml.dump(yamlData);
+        let yamlOutput = jsyaml.dump(yamlData, {
+            indent: 2,
+            lineWidth: 1000, // Valor alto para evitar que se corten las líneas
+            noRefs: true,
+            sortKeys: false,
+            quotingType: '"',
+            forceQuotes: false // No forzar comillas para permitir formato multilínea
+        });
+        
+        // Aplicar formato manual para textos multilínea
+        yamlOutput = formatMultilineTexts(yamlOutput);
         
         // Determinar endpoint y método según el modo
         let endpoint, method, requestBody;
@@ -194,13 +211,13 @@ async function saveYamlChanges() {
             endpoint = '/assistants/create';
             method = 'POST';
             requestBody = JSON.stringify({
-                yaml_content: updatedYaml
+                yaml_content: yamlOutput
             });
         } else {
             endpoint = `/assistants/${assistantId}/yaml`;
             method = 'PUT';
             requestBody = JSON.stringify({
-                yaml_content: updatedYaml,
+                yaml_content: yamlOutput,
                 create_new_version: createNewVersion
             });
         }
@@ -301,9 +318,11 @@ function loadDefaultTemplate() {
         .then(data => {
             const yamlContent = jsyaml.dump(data, {
                 indent: 2,
-                lineWidth: -1,
+                lineWidth: 1000, // Valor alto para evitar que se corten las líneas
                 noRefs: true,
-                sortKeys: false
+                sortKeys: false,
+                quotingType: '"',
+                forceQuotes: false // No forzar comillas para permitir formato multilínea
             });
             document.getElementById('yamlEditor').value = yamlContent;
         })
@@ -331,7 +350,9 @@ async function loadFormFields(data) {
         document.getElementById('assistantName').value = data.metadata?.description?.title || '';
         document.getElementById('assistantDescription').value = data.metadata?.description?.summary || '';
         document.getElementById('assistantCoverage').value = data.metadata?.description?.coverage || '';
-
+        document.getElementById('assistantRights').textContent = data.metadata?.rights || '';
+        document.getElementById('assistantVisibility').checked = data.metadata?.visibility?.is_public || false;
+        
         // Educational Level
         const educationalLevelList = document.getElementById('educationalLevelList');
         educationalLevelList.innerHTML = '';
@@ -405,14 +426,21 @@ async function loadFormFields(data) {
 
         // Behavior
         document.getElementById('invalidCommandResponse').value = data.assistant_instructions?.behavior?.invalid_command_response || '';
-        document.getElementById('onGreeting').value = (data.assistant_instructions?.behavior?.on_greeting || []).join('\n');
-        document.getElementById('onHelpCommand').value = (data.assistant_instructions?.behavior?.on_help_command || []).join('\n');
+        document.getElementById('onGreeting').value = Array.isArray(data.assistant_instructions?.behavior?.on_greeting) ? 
+            data.assistant_instructions?.behavior?.on_greeting.join('\n') : 
+            data.assistant_instructions?.behavior?.on_greeting || '';
+        document.getElementById('onHelpCommand').value = Array.isArray(data.assistant_instructions?.behavior?.on_help_command) ? 
+            data.assistant_instructions?.behavior?.on_help_command.join('\n') : 
+            data.assistant_instructions?.behavior?.on_help_command || '';
         document.getElementById('unrelatedTopicResponse').value = data.assistant_instructions?.behavior?.unrelated_topic_response || '';
         document.getElementById('promptVisibility').value = data.assistant_instructions?.behavior?.prompt_visibility || '';
+        document.getElementById('onTool').value = data.assistant_instructions?.behavior?.on_tool || '';
 
         // Capabilities
-        document.getElementById('capabilities').value = (data.assistant_instructions?.capabilities || []).join('\n');
-
+        document.getElementById('capabilities').value = Array.isArray(data.assistant_instructions?.capabilities) ? 
+            data.assistant_instructions?.capabilities.join('\n') : 
+            data.assistant_instructions?.capabilities || '';
+        
         // Style Guidelines
         document.getElementById('styleTone').value = data.assistant_instructions?.style_guidelines?.tone || '';
         document.getElementById('styleLevelOfDetail').value = data.assistant_instructions?.style_guidelines?.level_of_detail || '';
@@ -433,38 +461,41 @@ async function loadFormFields(data) {
         const toolsList = document.getElementById('toolsList');
         toolsList.innerHTML = '';
         
+        // Verificar la estructura de herramientas
+        const tools = data.assistant_instructions?.tools || {};
+        
         // Add commands
-        Object.entries(data.assistant_instructions?.tools?.commands || {}).forEach(([name, command], index) => {
+        Object.entries(tools.commands || {}).forEach(([name, command], index) => {
             addToolToList({
                 type: 'command',
                 name: name,
                 display_name: command.display_name || name,
-                description: command.internal_description || '',
-                internal_description: command.description || ''
+                description: command.description || '',
+                prompt: command.prompt || ''
             }, index);
         });
         
         // Add options
-        Object.entries(data.assistant_instructions?.tools?.options || {}).forEach(([name, option], index) => {
+        Object.entries(tools.options || {}).forEach(([name, option], index) => {
             addToolToList({
                 type: 'option',
                 name: name,
                 display_name: option.display_name || name,
-                description: option.internal_description || '',
-                internal_description: option.description || ''
-            }, index + Object.keys(data.assistant_instructions?.tools?.commands || {}).length);
+                description: option.description || '',
+                prompt: option.prompt || ''
+            }, index + Object.keys(tools.commands || {}).length);
         });
         
         // Add decorators
-        Object.entries(data.assistant_instructions?.tools?.decorators || {}).forEach(([name, decorator], index) => {
+        Object.entries(tools.decorators || {}).forEach(([name, decorator], index) => {
             addToolToList({
                 type: 'decorator',
                 name: name,
                 display_name: decorator.display_name || name,
-                description: decorator.internal_description || '',
-                internal_description: decorator.description || ''
-            }, index + Object.keys(data.assistant_instructions?.tools?.commands || {}).length + 
-                   Object.keys(data.assistant_instructions?.tools?.options || {}).length);
+                description: decorator.description || '',
+                prompt: decorator.prompt || ''
+            }, index + Object.keys(tools.commands || {}).length + 
+                   Object.keys(tools.options || {}).length);
         });
 
         // Update character count after loading fields
@@ -479,14 +510,37 @@ async function loadFormFields(data) {
 // Function to gather all form data and generate YAML
 function getFormData() {
     try {
+        // Función para procesar texto y convertirlo en array si es necesario
+        function processTextToArray(text) {
+            if (!text || !text.trim()) return [];
+            
+            // Eliminar cualquier caracter de escape o comillas acumuladas
+            let cleanText = text.trim();
+            
+            // Si parece que ya es un array serializado (comienza con - o [), intentar parsearlo
+            if (cleanText.startsWith('-') || cleanText.startsWith('[')) {
+                try {
+                    // Intentar cargar como YAML para ver si es un array
+                    const parsed = jsyaml.load(cleanText);
+                    if (Array.isArray(parsed)) {
+                        return parsed;
+                    }
+                } catch (e) {
+                    // Si falla, continuar con el procesamiento normal
+                    console.log('Error parsing as YAML:', e);
+                }
+            }
+            
+            // Dividir por saltos de línea y filtrar líneas vacías
+            return cleanText.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+        }
+        
+        // Crear la estructura siguiendo el orden del schema.yaml
         const yamlData = {
             metadata: {
-                author: {
-                    name: safeGetValue('authorName'),
-                    role: safeGetValue('authorRole'),
-                    contact: safeGetValue('authorContact'),
-                    organization: safeGetValue('authorOrganization')
-                },
+                // Sección de metadatos
                 description: {
                     title: safeGetValue('assistantName'),
                     summary: safeGetValue('assistantDescription'),
@@ -498,30 +552,41 @@ function getFormData() {
                 visibility: {
                     is_public: safeGetChecked('assistantVisibility', true)
                 },
-                rights: safeGetTextContent('assistantRights')
+                rights: safeGetTextContent('assistantRights'),
+                // Sección de autor
+                author: {
+                    name: safeGetValue('authorName'),
+                    role: safeGetValue('authorRole'),
+                    contact: safeGetValue('authorContact'),
+                    organization: safeGetValue('authorOrganization')
+                }
             },
             assistant_instructions: {
+                // Sección de instrucciones del asistente
+                role: safeGetValue('systemContent'),
                 context: {
                     context_definition: getListItems('contextDefinitionList'),
                     integration_strategy: getListItems('integrationStrategyList'),
                     user_data_handling: getListItems('userDataHandlingList')
                 },
+                behavior: {
+                    on_tool: safeGetValue('onTool'),
+                    // Procesar campos que deben ser arrays
+                    on_greeting: processTextToArray(safeGetValue('onGreeting')),
+                    on_help_command: processTextToArray(safeGetValue('onHelpCommand')),
+                    invalid_command_response: safeGetValue('invalidCommandResponse'),
+                    unrelated_topic_response: safeGetValue('unrelatedTopicResponse'),
+                    prompt_visibility: safeGetValue('promptVisibility')
+                },
+                help_text: safeGetValue('helpText'),
+                final_notes: getListItems('finalNotesList'),
+                // Procesar capabilities como array
+                capabilities: processTextToArray(safeGetValue('capabilities')),
                 style_guidelines: {
                     tone: safeGetValue('styleTone'),
                     level_of_detail: safeGetValue('styleLevelOfDetail'),
                     formatting_rules: getListItems('formattingRulesList')
                 },
-                final_notes: getListItems('finalNotesList'),
-                help_text: safeGetValue('helpText'),
-                role: safeGetValue('systemContent'),
-                behavior: {
-                    invalid_command_response: safeGetValue('invalidCommandResponse'),
-                    on_greeting: safeGetValue('onGreeting', '').split('\n').filter(line => line.trim()),
-                    on_help_command: safeGetValue('onHelpCommand', '').split('\n').filter(line => line.trim()),
-                    unrelated_topic_response: safeGetValue('unrelatedTopicResponse'),
-                    prompt_visibility: safeGetValue('promptVisibility')
-                },
-                capabilities: safeGetValue('capabilities', '').split('\n').filter(line => line.trim()),
                 tools: {
                     commands: {},
                     options: {},
@@ -539,30 +604,30 @@ function getFormData() {
                 const type = toolItem.querySelector('select[name="type"]')?.value;
                 const name = toolItem.querySelector('input[name="name"]')?.value;
                 const displayName = toolItem.querySelector('input[name="display_name"]')?.value;
-                const description = toolItem.querySelector('textarea[name="description"]')?.value;
-                const internalDescription = toolItem.querySelector('input[name="internal_description"]')?.value;
+                const description = toolItem.querySelector('input[name="description"]')?.value;
+                const prompt = toolItem.querySelector('textarea[name="prompt"]')?.value || '';
 
                 if (type && name) {
                     if (type === 'command') {
                         const fullName = name.startsWith('/') ? name : '/' + name;
                         yamlData.assistant_instructions.tools.commands[fullName] = {
                             display_name: displayName || name,
-                            description: internalDescription || '',
-                            internal_description: description || ''
+                            description: description || '',
+                            prompt: prompt
                         };
                     } else if (type === 'option') {
                         const fullName = name.startsWith('/') ? name : '/' + name;
                         yamlData.assistant_instructions.tools.options[fullName] = {
                             display_name: displayName || name,
-                            description: internalDescription || '',
-                            internal_description: description || ''
+                            description: description || '',
+                            prompt: prompt
                         };
                     } else if (type === 'decorator') {
                         const fullName = name.startsWith('+++') ? name : '+++' + name;
                         yamlData.assistant_instructions.tools.decorators[fullName] = {
                             display_name: displayName || name,
-                            description: internalDescription || '',
-                            internal_description: description || ''
+                            description: description || '',
+                            prompt: prompt
                         };
                     }
                 }
@@ -582,26 +647,39 @@ function getFormData() {
             console.error('Error preserving history:', error);
         }
 
-        return jsyaml.dump(yamlData);
+        // Generar YAML con opciones básicas
+        let yamlString = jsyaml.dump(yamlData, {
+            indent: 2,
+            lineWidth: 1000, // Valor alto para evitar que se corten las líneas
+            noRefs: true,
+            sortKeys: false,
+            quotingType: '"',
+            forceQuotes: false // No forzar comillas para permitir formato multilínea
+        });
+        
+        // Aplicar formato manual para textos multilínea
+        yamlString = formatMultilineTexts(yamlString);
+        
+        return yamlString;
     } catch (error) {
         console.error('Error generating YAML:', error);
         return ""; // Return empty string to avoid breaking the character count
     }
 }
 
-// Helper function to get value of an element safely
+// Function to get value of an element safely
 function safeGetValue(elementId, defaultValue = '') {
     const element = document.getElementById(elementId);
     return element ? element.value : defaultValue;
 }
 
-// Helper function to get text content of an element safely
+// Function to get text content of an element safely
 function safeGetTextContent(elementId, defaultValue = '') {
     const element = document.getElementById(elementId);
     return element ? element.textContent : defaultValue;
 }
 
-// Helper function to get checked state of a checkbox safely
+// Function to get checked state of a checkbox safely
 function safeGetChecked(elementId, defaultValue = false) {
     const element = document.getElementById(elementId);
     return element ? element.checked : defaultValue;
@@ -632,10 +710,17 @@ function getListItems(listId) {
 // Function to update character counter
 function updateCharCount() {
     try {
+        // Generar el YAML formateado
         const yaml = getFormData();
         const charCount = yaml.length;
         const maxChars = 8000;
         const percentage = (charCount / maxChars) * 100;
+        
+        // Actualizar el editor YAML en la pestaña 'Raw YAML'
+        const yamlEditor = document.getElementById('yamlEditor');
+        if (yamlEditor) {
+            yamlEditor.value = yaml;
+        }
         
         // Update counter
         const counterElement = document.getElementById('yamlCharCount');
@@ -696,7 +781,7 @@ function addToolToList(tool, index) {
     }
     tool.display_name = tool.display_name || '';
     tool.description = tool.description || '';
-    tool.internal_description = tool.internal_description || '';
+    tool.prompt = tool.prompt || '';
 
     toolDiv.innerHTML = `
         <div class="row mb-2">
@@ -723,14 +808,14 @@ function addToolToList(tool, index) {
             </div>
             <div class="col-md-6">
                 <label class="form-label">Description</label>
-                <input type="text" name="internal_description" class="form-control" value="${tool.internal_description}" placeholder="Description">
+                <input type="text" name="description" class="form-control" value="${tool.description}" placeholder="Description">
             </div>
         </div>
         <div class="row mb-2">
             <div class="col-12">
                 <label class="form-label">Prompt</label>
                 <div class="input-group">
-                    <textarea name="description" class="form-control" rows="2" placeholder="Enter prompt for this tool">${tool.description}</textarea>
+                    <textarea name="prompt" class="form-control" rows="2" placeholder="Enter prompt for this tool">${tool.prompt}</textarea>
                     <button class="btn btn-outline-primary" type="button" onclick="improveToolPrompt(this)">
                         <i class="bi bi-magic"></i>
                     </button>
@@ -772,7 +857,7 @@ function addNewTool() {
         name: '',
         display_name: '',
         description: '',
-        internal_description: ''
+        prompt: ''
     };
     addToolToList(newTool, toolsList.children.length);
 }
@@ -1131,4 +1216,325 @@ function addListItem(listId, dataType, text) {
 // Function to remove list item
 function removeListItem(button) {
     button.closest('li').remove();
+}
+
+// Función para limpiar todas las listas
+function clearAllLists() {
+    // Listas a limpiar
+    const listIds = [
+        'educationalLevelList',
+        'useCasesList',
+        'contextDefinitionList',
+        'integrationStrategyList',
+        'userDataHandlingList',
+        'formattingRulesList',
+        'finalNotesList',
+        'toolsList'
+    ];
+    
+    // Limpiar cada lista
+    listIds.forEach(listId => {
+        const list = document.getElementById(listId);
+        if (list) {
+            list.innerHTML = '';
+        }
+    });
+}
+
+// Function to load YAML data
+function loadYamlData(yamlContent) {
+    try {
+        console.log('Loading YAML data...');
+        const data = jsyaml.load(yamlContent);
+        
+        // Limpiar todas las listas antes de cargar nuevos datos
+        clearAllLists();
+        
+        // Basic Info
+        document.getElementById('assistantName').value = data.metadata?.description?.title || '';
+        document.getElementById('assistantDescription').value = data.metadata?.description?.summary || '';
+        document.getElementById('assistantCoverage').value = data.metadata?.description?.coverage || '';
+        document.getElementById('assistantRights').textContent = data.metadata?.rights || '';
+        document.getElementById('assistantVisibility').checked = data.metadata?.visibility?.is_public || false;
+        
+        // Keywords
+        const keywordsContainer = document.getElementById('keywordsContainer');
+        keywordsContainer.innerHTML = '';
+        data.metadata?.description?.keywords?.forEach(keyword => {
+            addKeyword(keyword);
+        });
+        
+        // Educational Level
+        data.metadata?.description?.educational_level?.forEach(level => {
+            addListItem('educationalLevelList', 'educational-level', level);
+        });
+        
+        // Use Cases
+        data.metadata?.description?.use_cases?.forEach(useCase => {
+            addListItem('useCasesList', 'use-case', useCase);
+        });
+        
+        // Author
+        document.getElementById('authorName').value = data.metadata?.author?.name || '';
+        document.getElementById('authorRole').value = data.metadata?.author?.role || '';
+        document.getElementById('authorContact').value = data.metadata?.author?.contact || '';
+        document.getElementById('authorOrganization').value = data.metadata?.author?.organization || '';
+
+        // History
+        const historyList = document.getElementById('historyList');
+        historyList.innerHTML = '';
+        data.metadata?.history?.forEach(entry => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex align-items-center';
+            li.innerHTML = `
+                <i class="bi bi-clock-history text-muted"></i>
+                <span class="text-muted small">${entry}</span>
+            `;
+            historyList.appendChild(li);
+        });
+        
+        // Context
+        data.assistant_instructions?.context?.context_definition?.forEach(item => {
+            addListItem('contextDefinitionList', 'context-definition', item);
+        });
+        
+        data.assistant_instructions?.context?.integration_strategy?.forEach(item => {
+            addListItem('integrationStrategyList', 'integration-strategy', item);
+        });
+        
+        data.assistant_instructions?.context?.user_data_handling?.forEach(item => {
+            addListItem('userDataHandlingList', 'user-data-handling', item);
+        });
+        
+        // System
+        document.getElementById('systemContent').value = data.assistant_instructions?.role || '';
+
+        // Behavior
+        document.getElementById('invalidCommandResponse').value = data.assistant_instructions?.behavior?.invalid_command_response || '';
+        document.getElementById('onGreeting').value = Array.isArray(data.assistant_instructions?.behavior?.on_greeting) ? 
+            data.assistant_instructions?.behavior?.on_greeting.join('\n') : 
+            data.assistant_instructions?.behavior?.on_greeting || '';
+        document.getElementById('onHelpCommand').value = Array.isArray(data.assistant_instructions?.behavior?.on_help_command) ? 
+            data.assistant_instructions?.behavior?.on_help_command.join('\n') : 
+            data.assistant_instructions?.behavior?.on_help_command || '';
+        document.getElementById('unrelatedTopicResponse').value = data.assistant_instructions?.behavior?.unrelated_topic_response || '';
+        document.getElementById('promptVisibility').value = data.assistant_instructions?.behavior?.prompt_visibility || '';
+        document.getElementById('onTool').value = data.assistant_instructions?.behavior?.on_tool || '';
+
+        // Capabilities
+        document.getElementById('capabilities').value = Array.isArray(data.assistant_instructions?.capabilities) ? 
+            data.assistant_instructions?.capabilities.join('\n') : 
+            data.assistant_instructions?.capabilities || '';
+        
+        // Style Guidelines
+        document.getElementById('styleTone').value = data.assistant_instructions?.style_guidelines?.tone || '';
+        document.getElementById('styleLevelOfDetail').value = data.assistant_instructions?.style_guidelines?.level_of_detail || '';
+        
+        data.assistant_instructions?.style_guidelines?.formatting_rules?.forEach(item => {
+            addListItem('formattingRulesList', 'formatting-rule', item);
+        });
+
+        // Final Notes
+        data.assistant_instructions?.final_notes?.forEach(item => {
+            addListItem('finalNotesList', 'final-note', item);
+        });
+
+        // Help Text
+        document.getElementById('helpText').value = data.assistant_instructions?.help_text || '';
+
+        // Tools
+        const toolsList = document.getElementById('toolsList');
+        toolsList.innerHTML = '';
+        
+        // Verificar la estructura de herramientas
+        const tools = data.assistant_instructions?.tools || {};
+        
+        // Add commands
+        Object.entries(tools.commands || {}).forEach(([name, command], index) => {
+            addToolItem('command', name, command.display_name, command.description, command.prompt);
+        });
+        
+        // Add options
+        Object.entries(tools.options || {}).forEach(([name, option], index) => {
+            addToolItem('option', name, option.display_name, option.description, option.prompt);
+        });
+        
+        // Add decorators
+        Object.entries(tools.decorators || {}).forEach(([name, decorator], index) => {
+            addToolItem('decorator', name, decorator.display_name, decorator.description, decorator.prompt);
+        });
+        
+        // Update character count
+        setTimeout(updateCharCount, 200);
+        
+        console.log('YAML data loaded successfully');
+    } catch (error) {
+        console.error('Error loading YAML data:', error);
+        showToast('Error loading YAML data: ' + error.message, 'danger');
+    }
+}
+
+// Function to add tool item
+function addToolItem(type, name, displayName, description, prompt) {
+    const toolsList = document.getElementById('toolsList');
+    const toolDiv = document.createElement('div');
+    toolDiv.className = 'tool-item mb-4 p-3 border rounded';
+    
+    // Limpiar los prefijos si los tiene
+    let cleanName = name;
+    if (type === 'command' || type === 'option') {
+        cleanName = name.startsWith('/') ? name.substring(1) : name;
+    } else if (type === 'decorator') {
+        cleanName = name.startsWith('+++') ? name.substring(3) : name;
+    }
+    
+    toolDiv.innerHTML = `
+        <div class="row mb-2">
+            <div class="col-md-4">
+                <label class="form-label">Type</label>
+                <select class="form-select" name="type" onchange="updateCommandName(this)">
+                    <option value="command" ${type === 'command' ? 'selected' : ''}>Command</option>
+                    <option value="option" ${type === 'option' ? 'selected' : ''}>Option</option>
+                    <option value="decorator" ${type === 'decorator' ? 'selected' : ''}>Decorator</option>
+                </select>
+            </div>
+            <div class="col-md-8">
+                <label class="form-label">Name</label>
+                <div class="input-group">
+                    <span class="input-group-text tool-prefix">${type === 'decorator' ? '+++' : '/'}</span>
+                    <input type="text" name="name" class="form-control tool-name" value="${cleanName}" placeholder="Enter a short and descriptive name to refer to the tool">
+                </div>
+            </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-md-6">
+                <label class="form-label">Display Name</label>
+                <input type="text" name="display_name" class="form-control" value="${displayName || ''}" placeholder="Display Name">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Description</label>
+                <input type="text" name="description" class="form-control" value="${description || ''}" placeholder="Description">
+            </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-12">
+                <label class="form-label">Prompt</label>
+                <div class="input-group">
+                    <textarea name="prompt" class="form-control" rows="2" placeholder="Enter prompt for this tool">${prompt || ''}</textarea>
+                    <button class="btn btn-outline-primary" type="button" onclick="improveToolPrompt(this)">
+                        <i class="bi bi-magic"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="text-end">
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeTool(this)">
+                <i class="bi bi-trash"></i> Remove
+            </button>
+        </div>
+    `;
+    
+    toolsList.appendChild(toolDiv);
+}
+
+// Función para formatear textos multilínea en el YAML
+function formatMultilineTexts(yamlString) {
+    // Campos que deben usar formato multilínea
+    const multilineFields = [
+        'role',
+        'help_text',
+        'prompt'
+    ];
+    
+    // Dividir el YAML en líneas
+    const lines = yamlString.split('\n');
+    let result = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        let processed = false;
+        
+        // Verificar si esta línea contiene un campo multilínea
+        for (const field of multilineFields) {
+            // Buscar el campo exacto con posible espacio antes y después de los dos puntos
+            const regex = new RegExp(`^(\\s*${field}\\s*:)\\s*(.*)$`);
+            const match = line.match(regex);
+            
+            if (match) {
+                const [_, fieldPart, valuePart] = match;
+                const indentation = fieldPart.match(/^\s*/)[0];
+                
+                // Si hay un valor y no es solo espacios
+                if (valuePart && valuePart.trim()) {
+                    // Limpiar el valor (quitar comillas, etc.)
+                    let content = valuePart.trim();
+                    
+                    // Quitar comillas si existen
+                    if ((content.startsWith('"') && content.endsWith('"')) || 
+                        (content.startsWith('\'') && content.endsWith('\'')))
+                    {
+                        content = content.substring(1, content.length - 1);
+                    }
+                    
+                    // Quitar marcadores de multilínea si existen
+                    if (content === '>' || content === '|') {
+                        // Si solo hay un marcador, no hay contenido real
+                        result.push(`${fieldPart} >`);
+                        processed = true;
+                        break;
+                    } else if (content.startsWith('> ')) {
+                        content = content.substring(2);
+                    } else if (content.startsWith('| ')) {
+                        content = content.substring(2);
+                    }
+                    
+                    // Quitar \n al final si existe
+                    content = content.replace(/\\n$/, '');
+                    
+                    // Agregar el campo con formato multilínea
+                    result.push(`${fieldPart} >`);
+                    
+                    // Dividir el contenido en palabras
+                    const words = content.split(/\s+/);
+                    let currentLine = '';
+                    const maxLineLength = 80; // Longitud máxima de línea
+                    
+                    // Construir líneas de longitud razonable
+                    words.forEach(word => {
+                        if (currentLine.length + word.length + 1 > maxLineLength) {
+                            // Si agregar la palabra excede la longitud máxima, agregar la línea actual
+                            if (currentLine) {
+                                result.push(`${indentation}  ${currentLine}`);
+                                currentLine = word;
+                            } else {
+                                // Si la palabra es muy larga, agregarla sola
+                                result.push(`${indentation}  ${word}`);
+                            }
+                        } else {
+                            // Agregar la palabra a la línea actual
+                            currentLine = currentLine ? `${currentLine} ${word}` : word;
+                        }
+                    });
+                    
+                    // Agregar la última línea si queda algo
+                    if (currentLine) {
+                        result.push(`${indentation}  ${currentLine}`);
+                    }
+                } else {
+                    // Si no hay valor, simplemente agregar el campo con '>' 
+                    result.push(`${fieldPart} >`);
+                }
+                
+                processed = true;
+                break;
+            }
+        }
+        
+        // Si no procesamos esta línea, agregarla tal cual
+        if (!processed) {
+            result.push(line);
+        }
+    }
+    
+    return result.join('\n');
 }

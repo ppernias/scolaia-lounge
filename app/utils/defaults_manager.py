@@ -6,15 +6,12 @@ import os
 import jsonschema
 
 class DefaultsManager:
-    """Manages default settings loaded from defaults.yaml"""
+    """Manages default settings loaded from schema.yaml"""
     
-    def __init__(self, defaults_path: str = "defaults.yaml", schema_path: str = None):
-        self.defaults_path = Path(defaults_path).resolve()
-        if schema_path is None:
-            # Si no se proporciona ruta al schema, usar la del directorio raíz
-            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            schema_path = os.path.join(base_dir, "schema.yaml")
-        self.schema_path = Path(schema_path).resolve()
+    def __init__(self, schema_path: str = "schema.yaml"):
+        # Usar solo schema.yaml, eliminar la referencia a defaults.yaml
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        self.schema_path = Path(os.path.join(base_dir, schema_path)).resolve()
         self._defaults: Optional[Dict[str, Any]] = None
         self._schema: Optional[Dict[str, Any]] = None
 
@@ -31,168 +28,113 @@ class DefaultsManager:
 
     @lru_cache(maxsize=1)
     def load_defaults(self) -> Dict[str, Any]:
-        """Load defaults from YAML file with caching"""
+        """Load defaults from schema.yaml file with caching"""
         if not self._defaults:
             try:
                 # Cargar schema primero
                 schema = self.load_schema()
                 
-                # Cargar y validar defaults
-                with self.defaults_path.open('r') as f:
-                    defaults = yaml.safe_load(f)
-                    jsonschema.validate(instance=defaults, schema=schema)
-                    self._defaults = defaults
+                # Extraer valores predeterminados del schema
+                self._defaults = self.extract_defaults_from_schema(schema)
                     
-            except jsonschema.exceptions.ValidationError as e:
-                print(f"Validation error in defaults: {str(e)}")
-                raise
             except Exception as e:
-                print(f"Error loading defaults from {self.defaults_path}: {str(e)}")
+                print(f"Error loading defaults from {self.schema_path}: {str(e)}")
                 raise
         return self._defaults
 
-    def get_defaults(self) -> Dict[str, Any]:
-        """Get all defaults"""
-        return self.load_defaults()
-
-    def get_default(self, path: str, default: Any = None) -> Any:
-        """Get a default value using dot notation path"""
-        defaults = self.load_defaults()
-        keys = path.split('.')
-        value = defaults
+    def extract_defaults_from_schema(self, schema: Dict[str, Any]) -> Dict[str, Any]:
+        """Extraer valores predeterminados del schema de manera recursiva"""
+        defaults = {}
         
+        # Procesar propiedades recursivamente
+        if 'properties' in schema:
+            for prop_name, prop_schema in schema['properties'].items():
+                if 'default' in prop_schema:
+                    # Caso especial para herramientas (commands, options, decorators)
+                    if prop_name in ['commands', 'options', 'decorators'] and isinstance(prop_schema['default'], str):
+                        # No almacenar el valor predeterminado directamente, se manejará más adelante
+                        pass
+                    else:
+                        defaults[prop_name] = prop_schema['default']
+                elif 'properties' in prop_schema:
+                    # Recursión para propiedades anidadas
+                    nested_defaults = self.extract_defaults_from_schema(prop_schema)
+                    if nested_defaults:
+                        defaults[prop_name] = nested_defaults
+                elif 'items' in prop_schema and 'properties' in prop_schema['items']:
+                    # Manejar arrays de objetos
+                    defaults[prop_name] = []
+                
+                # Caso especial para la sección de herramientas
+                if prop_name == 'tools' and 'properties' in prop_schema:
+                    tools_defaults = {}
+                    
+                    # Procesar cada tipo de herramienta (commands, options, decorators)
+                    for tool_type, tool_schema in prop_schema['properties'].items():
+                        if 'default' in tool_schema and isinstance(tool_schema['default'], str):
+                            tool_name = tool_schema['default']
+                            
+                            # Determinar el prefijo correcto
+                            if tool_type == 'commands' or tool_type == 'options':
+                                if tool_name.startswith('/'):
+                                    name_without_prefix = tool_name[1:]
+                                else:
+                                    name_without_prefix = tool_name
+                                prefix = '/'
+                            elif tool_type == 'decorators':
+                                if tool_name.startswith('+++'):
+                                    name_without_prefix = tool_name[3:]
+                                else:
+                                    name_without_prefix = tool_name
+                                prefix = '+++'
+                            else:
+                                continue
+                            
+                            # Obtener las propiedades predeterminadas para esta herramienta
+                            if 'additionalProperties' in tool_schema and 'properties' in tool_schema['additionalProperties']:
+                                tool_props = tool_schema['additionalProperties']['properties']
+                                tool_defaults = {}
+                                
+                                for tool_prop_name, tool_prop_schema in tool_props.items():
+                                    if 'default' in tool_prop_schema:
+                                        tool_defaults[tool_prop_name] = tool_prop_schema['default']
+                                
+                                # Asegurarse de que la estructura de herramientas exista
+                                if tool_type not in tools_defaults:
+                                    tools_defaults[tool_type] = {}
+                                
+                                # Agregar esta herramienta a la estructura
+                                tools_defaults[tool_type][f"{prefix}{name_without_prefix}"] = tool_defaults
+                    
+                    # Agregar las herramientas a los valores predeterminados
+                    if tools_defaults:
+                        defaults['tools'] = tools_defaults
+        
+        return defaults
+
+    def validate_against_schema(self, data: Dict[str, Any]) -> bool:
+        """Validate data against the schema"""
+        schema = self.load_schema()
+        try:
+            jsonschema.validate(instance=data, schema=schema)
+            return True
+        except jsonschema.exceptions.ValidationError:
+            return False
+
+    def get_default(self, key: str, default: Any = None) -> Any:
+        """Get a default value by key"""
+        defaults = self.load_defaults()
+        return defaults.get(key, default)
+
+    def get_nested_default(self, keys: list, default: Any = None) -> Any:
+        """Get a nested default value by list of keys"""
+        current = self.load_defaults()
         for key in keys:
-            if isinstance(value, dict) and key in value:
-                value = value[key]
+            if isinstance(current, dict) and key in current:
+                current = current[key]
             else:
                 return default
-                
-        return value
-
-    def merge_with_defaults(self, user_config: Dict[str, Any]) -> Dict[str, Any]:
-        """Merge user configuration with defaults. User values take precedence."""
-        defaults = self.load_defaults()
-        
-        def deep_merge(defaults: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, Any]:
-            """Merge defaults with user config, user values take precedence"""
-            result = defaults.copy()
-            
-            for key, value in user.items():
-                if key in result and isinstance(value, dict) and isinstance(result[key], dict):
-                    # Si ambos son diccionarios, hacer merge recursivo
-                    result[key] = deep_merge(result[key], value)
-                else:
-                    # En cualquier otro caso, el valor del usuario prevalece
-                    result[key] = value
-            return result
-            
-        return deep_merge(defaults, user_config)
-
-    def clean_yaml(self, yaml_content: str) -> str:
-        """Clean YAML content by removing extra blank lines while preserving indentation and markdown format"""
-        lines = yaml_content.splitlines()
-        cleaned_lines = []
-        prev_empty = False
-        in_markdown_block = False
-        current_indent = ""
-        markdown_content = []
-        
-        for line in lines:
-            # Detectar si estamos en un bloque de contenido markdown (como el campo 'role')
-            stripped_line = line.strip()
-            if stripped_line.startswith('role:'):
-                in_markdown_block = True
-                current_indent = ' ' * (len(line) - len(line.lstrip()))
-                cleaned_lines.append(line.rstrip())
-                continue
-            
-            # Si estamos en un bloque markdown
-            if in_markdown_block:
-                # Si encontramos una nueva clave YAML (detectada por la indentación)
-                if stripped_line and not line.startswith(current_indent + ' '):
-                    # Procesar el bloque markdown acumulado
-                    if markdown_content:
-                        # Limpiar líneas en blanco extra en el contenido markdown
-                        md_lines = []
-                        prev_md_empty = False
-                        for md_line in markdown_content:
-                            is_md_empty = not md_line.strip()
-                            if not (is_md_empty and prev_md_empty):
-                                md_lines.append(md_line)
-                            prev_md_empty = is_md_empty
-                        
-                        # Eliminar líneas en blanco al inicio y final del markdown
-                        while md_lines and not md_lines[0].strip():
-                            md_lines.pop(0)
-                        while md_lines and not md_lines[-1].strip():
-                            md_lines.pop()
-                            
-                        # Añadir el contenido markdown limpio
-                        cleaned_lines.extend(md_lines)
-                    
-                    in_markdown_block = False
-                    markdown_content = []
-                    cleaned_lines.append(line.rstrip())
-                else:
-                    markdown_content.append(line)
-                continue
-            
-            # Para líneas normales de YAML
-            is_empty = not stripped_line
-            if not (is_empty and prev_empty):
-                cleaned_lines.append(line.rstrip())
-            prev_empty = is_empty
-        
-        # Procesar último bloque markdown si existe
-        if in_markdown_block and markdown_content:
-            md_lines = []
-            prev_md_empty = False
-            for md_line in markdown_content:
-                is_md_empty = not md_line.strip()
-                if not (is_md_empty and prev_md_empty):
-                    md_lines.append(md_line)
-                prev_md_empty = is_md_empty
-            
-            while md_lines and not md_lines[0].strip():
-                md_lines.pop(0)
-            while md_lines and not md_lines[-1].strip():
-                md_lines.pop()
-                
-            cleaned_lines.extend(md_lines)
-        
-        # Eliminar líneas en blanco al inicio y final del documento
-        while cleaned_lines and not cleaned_lines[0].strip():
-            cleaned_lines.pop(0)
-        while cleaned_lines and not cleaned_lines[-1].strip():
-            cleaned_lines.pop()
-        
-        return '\n'.join(cleaned_lines) + '\n'
-
-    def save_defaults(self, new_defaults: Dict[str, Any]) -> None:
-        """Save new defaults to YAML file after validation"""
-        try:
-            # Validate against schema
-            schema = self.load_schema()
-            jsonschema.validate(instance=new_defaults, schema=schema)
-            
-            # Convert to YAML and clean it
-            yaml_content = yaml.safe_dump(new_defaults, default_flow_style=False, sort_keys=False)
-            cleaned_yaml = self.clean_yaml(yaml_content)
-            
-            # Save cleaned YAML to file
-            with self.defaults_path.open('w') as f:
-                f.write(cleaned_yaml)
-            
-            # Clear cache to force reload
-            self.load_defaults.cache_clear()
-            self._defaults = None
-            
-        except jsonschema.exceptions.ValidationError as e:
-            print(f"Validation error in new defaults: {str(e)}")
-            raise
-        except Exception as e:
-            print(f"Error saving defaults to {self.defaults_path}: {str(e)}")
-            raise
+        return current
 
     def get_editable_fields(self) -> Dict[str, dict]:
         """Returns a dictionary of fields that currently have content with their type information"""
@@ -237,13 +179,13 @@ class DefaultsManager:
 # Singleton instance
 _defaults_manager = None
 
-def get_defaults_manager(defaults_path: str = None, schema_path: str = None) -> DefaultsManager:
+def get_defaults_manager(schema_path: str = None) -> DefaultsManager:
     """Get or create the DefaultsManager singleton"""
     global _defaults_manager
     if not _defaults_manager:
-        if defaults_path is None:
+        if schema_path is None:
             # Si no se proporciona ruta, usar la ruta por defecto en el directorio raíz del proyecto
             base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            defaults_path = os.path.join(base_dir, "defaults.yaml")
-        _defaults_manager = DefaultsManager(defaults_path, schema_path)
+            schema_path = os.path.join(base_dir, "schema.yaml")
+        _defaults_manager = DefaultsManager(schema_path)
     return _defaults_manager

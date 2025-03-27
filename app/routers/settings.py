@@ -591,15 +591,15 @@ async def get_defaults_yaml(
     request: Request,
     db: Session = Depends(get_db)
 ):
-    """Get the contents of defaults.yaml file"""
+    """Get the defaults extracted from schema.yaml (for compatibility with existing code)"""
     current_user = get_current_user(db, request.cookies.get("session"))
     if not current_user or not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
     
     try:
         defaults_manager = get_defaults_manager()
-        with open(defaults_manager.defaults_path, 'r') as f:
-            content = f.read()
+        defaults = defaults_manager.load_defaults()
+        content = yaml.safe_dump(defaults, default_flow_style=False, sort_keys=False)
         return Response(content=content, media_type="text/plain")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -610,27 +610,13 @@ async def update_defaults_yaml(
     data: Dict[str, str],
     db: Session = Depends(get_db)
 ):
-    """Update the contents of defaults.yaml file"""
+    """This endpoint is deprecated. Schema.yaml should be edited directly."""
     current_user = get_current_user(db, request.cookies.get("session"))
     if not current_user or not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
     
-    try:
-        # Validar que el contenido sea YAML válido
-        yaml.safe_load(data["content"])
-        
-        defaults_manager = get_defaults_manager()
-        with open(defaults_manager.defaults_path, 'w') as f:
-            f.write(data["content"])
-            
-        # Limpiar el caché del DefaultsManager
-        defaults_manager.load_defaults.cache_clear()
-        
-        return {"message": "defaults.yaml updated successfully"}
-    except yaml.YAMLError as e:
-        raise HTTPException(status_code=400, detail=f"Invalid YAML format: {str(e)}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    # Esta ruta se mantiene por compatibilidad pero ya no hace nada
+    return {"message": "This endpoint is deprecated. Schema.yaml should be edited directly."}
 
 @router.get("/get_default_llm")
 async def get_default_llm(

@@ -184,7 +184,7 @@
                     <!-- System Tab -->
                     <div class="tab-pane fade" id="system" role="tabpanel">
                         <div class="mb-3">
-                            <label for="systemRole" class="form-label font-audiowide">Role</label>
+                            <label class="form-label font-audiowide">Role</label>
                             <div class="input-group">
                                 <textarea class="form-control" id="systemContent" rows="5"></textarea>
                                 <button class="btn btn-outline-secondary" type="button" onclick="improveRolePrompt()" title="Improve prompt using AI">
@@ -195,6 +195,10 @@
                         <hr class="my-4">
                         <div class="mb-3">
                             <label class="form-label font-audiowide">Behavior</label>
+                            <div class="mb-3">
+                                <label for="onTool" class="form-label font-audiowide">On Tool</label>
+                                <textarea class="form-control" id="onTool" name="onTool" rows="2" placeholder="Behavior when a tool is used..."></textarea>
+                            </div>
                             <div class="mb-3">
                                 <label for="invalidCommandResponse" class="form-label font-audiowide">Invalid Command Response</label>
                                 <input type="text" class="form-control" id="invalidCommandResponse">
@@ -213,10 +217,7 @@
                             </div>
                             <div class="mb-3">
                                 <label for="promptVisibility" class="form-label font-audiowide">Prompt Visibility</label>
-                                <select class="form-select" id="promptVisibility">
-                                    <option value="visible">Visible</option>
-                                    <option value="hidden">Hidden</option>
-                                </select>
+                                <input type="text" class="form-control" id="promptVisibility" placeholder="Enter prompt visibility instructions...">
                             </div>
                         </div>
                         <hr class="my-4">
