@@ -118,142 +118,228 @@ function editYamlContent(assistantId) {
 }
 
 // Function to save YAML changes
-async function saveYamlChanges() {
-    console.log('saveYamlChanges function called');
-    const assistantId = document.getElementById('currentAssistantId').value;
-    const createNewVersion = document.getElementById('createNewVersion')?.checked || false;
-    const minorChangesCheckbox = document.getElementById('minorChanges');
-    const editorMode = document.getElementById('editorMode').value;
+async function saveYamlChanges(shouldFinish = false) {
+    console.log('YAML-EDITOR.JS: saveYamlChanges function called with shouldFinish =', shouldFinish);
     
-    // Verificar el límite de caracteres antes de guardar
-    const saveButton = document.getElementById('saveYamlBtnFooter');
-    const charCount = parseInt(document.getElementById('charCount')?.textContent || '0');
-    const charLimit = parseInt(document.getElementById('maxChars')?.textContent || '100000');
-    
-    if (charCount > charLimit) {
-        if (window.toast) {
-            window.toast.error(`El contenido excede el límite de ${charLimit} caracteres. Por favor, reduzca el contenido.`);
-        }
-        console.error(`Character limit exceeded: ${charCount}/${charLimit}`);
+    // Evitar duplicidad si ya se está ejecutando desde otro archivo
+    if (window.saveInProgress) {
+        console.log('YAML-EDITOR.JS: saveYamlChanges aborted - already in progress');
         return;
     }
     
-    // Generar el YAML a partir de los datos del formulario
-    let yamlContent;
+    window.saveInProgress = true;
+    console.log('YAML-EDITOR.JS: Setting saveInProgress flag to true');
+    
     try {
-        // Obtener los datos del formulario
-        let formData;
-        if (typeof getFormData === 'function') {
-            formData = getFormData();
-        } else if (typeof window.YAMLUtils !== 'undefined' && typeof window.YAMLUtils.getFormData === 'function') {
-            formData = window.YAMLUtils.getFormData();
-        } else {
-            throw new Error('getFormData function not found');
-        }
+        const assistantId = document.getElementById('currentAssistantId')?.value;
+        const createNewVersion = document.getElementById('createNewVersion')?.checked || false;
+        const minorChangesCheckbox = document.getElementById('minorChanges');
+        const editorMode = document.getElementById('editorMode')?.value;
         
-        console.log('Form data collected:', formData);
-        
-        // Convertir los datos a YAML
-        yamlContent = jsyaml.dump(formData);
-        console.log('Generated YAML:', yamlContent);
-        
-        // Validar el YAML generado
-        const parsedYaml = jsyaml.load(yamlContent);
-        if (!parsedYaml || Object.keys(parsedYaml).length === 0) {
-            throw new Error('Generated YAML is empty or invalid');
-        }
-    } catch (e) {
-        if (window.toast) {
-            window.toast.error('Error generating YAML: ' + e.message);
-        }
-        console.error('Error generating YAML:', e);
-        return;
-    }
-    
-    // Verificar si el contenido ha cambiado
-    if (yamlContent === window.originalYaml && editorMode === 'edit') {
-        if (window.toast) {
-            window.toast.info('No changes detected in YAML content');
-        }
-        console.log('No changes detected in YAML content');
-        const modal = bootstrap.Modal.getInstance(document.getElementById('editYamlModal'));
-        if (modal) modal.hide();
-        return;
-    }
-    
-    // Deshabilitar el botón de guardar para evitar múltiples envíos
-    if (saveButton) {
-        saveButton.disabled = true;
-        saveButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...';
-    }
-    
-    // Preparar los datos para enviar
-    const formDataToSend = new FormData();
-    formDataToSend.append('yaml_content', yamlContent);
-    formDataToSend.append('create_new_version', createNewVersion);
-    if (minorChangesCheckbox) {
-        // El checkbox en la UI dice "Minor changes (don't update history)"
-        // Por lo tanto, si estu00e1 marcado, minor_changes debe ser true
-        formDataToSend.append('minor_changes', minorChangesCheckbox.checked);
-    }
-    
-    // Enviar los datos al servidor
-    try {
-        let url;
-        if (editorMode === 'edit' && assistantId) {
-            // La ruta correcta es /{assistant_id} sin 'update_yaml'
-            url = `/assistants/${assistantId}`;
-        } else {
-            // Para crear un nuevo asistente
-            url = '/assistants/create';
-        }
-        
-        console.log('Sending YAML to URL:', url);
-        const response = await fetch(url, {
-            method: 'POST',
-            body: formDataToSend
+        console.log('YAML-EDITOR.JS: Current state:', { 
+            assistantId, 
+            createNewVersion, 
+            minorChanges: minorChangesCheckbox?.checked, 
+            editorMode,
+            shouldFinish
         });
         
-        if (!response.ok) {
-            throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
+        // Verificar el límite de caracteres antes de guardar
+        const saveButton = document.getElementById('saveYamlBtnFooter');
+        const charCount = parseInt(document.getElementById('charCount')?.textContent || '0');
+        const charLimit = parseInt(document.getElementById('maxChars')?.textContent || '100000');
+        
+        if (charCount > charLimit) {
+            if (window.toast) {
+                window.toast.error(`Content exceeds the ${charLimit} character limit. Please reduce the content.`);
+            }
+            console.error(`Character limit exceeded: ${charCount}/${charLimit}`);
+            return;
         }
         
-        const result = await response.json();
-        
-        // Verificar si la respuesta contiene un mensaje de éxito
-        if (result.success || result.message?.includes('successfully')) {
-            if (window.toast) {
-                window.toast.success(result.message || 'YAML saved successfully');
+        // Obtener los datos del formulario
+        let formData;
+        try {
+            if (typeof getFormData === 'function') {
+                formData = getFormData();
+            } else if (typeof window.YAMLUtils !== 'undefined' && typeof window.YAMLUtils.getFormData === 'function') {
+                formData = window.YAMLUtils.getFormData();
+            } else {
+                throw new Error('getFormData function not found');
             }
-            console.log('YAML saved successfully:', result);
             
-            // Cerrar el modal
+            console.log('YAML-EDITOR.JS: Form data collected:', formData);
+        } catch (e) {
+            if (window.toast) {
+                window.toast.error('Error collecting form data: ' + e.message);
+            }
+            console.error('YAML-EDITOR.JS: Error collecting form data:', e);
+            return;
+        }
+        
+        // Si estamos finalizando, validar los campos requeridos
+        if (shouldFinish) {
+            console.log('YAML-EDITOR.JS: Validating required fields before finishing');
+            
+            // Validar campos requeridos
+            let validationResult;
+            if (typeof window.YAMLValidator !== 'undefined' && typeof window.YAMLValidator.validateRequiredFields === 'function') {
+                validationResult = window.YAMLValidator.validateRequiredFields(formData);
+            } else {
+                console.error('YAML-EDITOR.JS: YAMLValidator not found');
+                if (window.toast) {
+                    window.toast.error('Error: YAMLValidator not found. Cannot validate required fields.');
+                }
+                return;
+            }
+            
+            // Si hay campos requeridos faltantes, mostrar error y detener
+            if (!validationResult.isValid) {
+                console.info('YAML-EDITOR.JS: Validation failed. Missing required fields:', validationResult.missingFields);
+                
+                // Mostrar errores de validación
+                if (typeof window.YAMLValidator.displayValidationErrors === 'function') {
+                    window.YAMLValidator.displayValidationErrors(validationResult.missingFields);
+                } else {
+                    // Fallback si la función de visualización no está disponible
+                    let errorMessage = 'Missing required fields: ' + validationResult.missingFields.join(', ');
+                    if (window.toast) {
+                        window.toast.error(errorMessage);
+                    } else {
+                        alert(errorMessage);
+                    }
+                }
+                
+                return;
+            }
+            
+            console.log('YAML-EDITOR.JS: Validation successful');
+        }
+        
+        // Generar el YAML a partir de los datos del formulario
+        let yamlContent;
+        try {
+            // Convertir los datos a YAML
+            yamlContent = jsyaml.dump(formData);
+            console.log('YAML-EDITOR.JS: Generated YAML');
+            
+            // Validar el YAML generado
+            const parsedYaml = jsyaml.load(yamlContent);
+            if (!parsedYaml || Object.keys(parsedYaml).length === 0) {
+                throw new Error('Generated YAML is empty or invalid');
+            }
+        } catch (e) {
+            if (window.toast) {
+                window.toast.error('Error generating YAML: ' + e.message);
+            }
+            console.error('YAML-EDITOR.JS: Error generating YAML:', e);
+            return;
+        }
+        
+        // Si no estamos finalizando, solo guardar temporalmente
+        if (!shouldFinish) {
+            console.log('YAML-EDITOR.JS: Saving temporarily only');
+            
+            // Actualizar el YAML original para futuras comparaciones
+            window.originalYaml = yamlContent;
+            
+            // Mostrar mensaje de éxito
+            if (window.toast) {
+                window.toast.success('Changes saved temporarily');
+            }
+            console.log('YAML-EDITOR.JS: Changes saved temporarily');
+            return;
+        }
+        
+        // A partir de aquí, solo se ejecuta si shouldFinish es true
+        console.log('YAML-EDITOR.JS: Proceeding with server submission');
+        
+        // Verificar si el contenido ha cambiado
+        if (yamlContent === window.originalYaml && editorMode === 'edit') {
+            console.log('YAML-EDITOR.JS: No changes detected');
+            if (window.toast) {
+                window.toast.info('No changes detected in YAML content');
+            }
             const modal = bootstrap.Modal.getInstance(document.getElementById('editYamlModal'));
             if (modal) modal.hide();
-            
-            // Recargar la página si se creó un nuevo asistente o se actualizó uno existente
-            if (result.redirect_url) {
-                window.location.href = result.redirect_url;
-            } else if (editorMode === 'edit') {
-                // Solo recargar si estamos en modo edición
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            }
-        } else {
-            throw new Error(result.message || 'Error saving YAML');
+            return;
         }
-    } catch (error) {
-        if (window.toast) {
-            window.toast.error('Error saving YAML: ' + error.message);
-        }
-        console.error('Error saving YAML:', error);
-    } finally {
-        // Restaurar el botón de guardar
+        
+        // Deshabilitar el botón de guardar para evitar múltiples envíos
         if (saveButton) {
-            saveButton.disabled = false;
-            saveButton.innerHTML = 'Save';
+            saveButton.disabled = true;
+            saveButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...';
         }
+        
+        // Enviar los datos al servidor
+        try {
+            let url;
+            if (editorMode === 'edit' && assistantId) {
+                // La ruta correcta es /{assistant_id} sin 'update_yaml'
+                url = `/assistants/${assistantId}`;
+            } else {
+                // Para crear un nuevo asistente
+                url = '/assistants/create';
+            }
+            
+            console.log('YAML-EDITOR.JS: Sending YAML to URL:', url);
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    yaml_content: yamlContent,
+                    create_new_version: createNewVersion,
+                    minor_changes: minorChangesCheckbox ? minorChangesCheckbox.checked : false
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            console.log('YAML-EDITOR.JS: Server response:', result);
+            
+            // Verificar si la respuesta contiene un mensaje de éxito
+            if (result.success || result.message?.includes('successfully')) {
+                if (window.toast) {
+                    window.toast.success(result.message || 'YAML saved successfully');
+                }
+                
+                // Cerrar el modal
+                console.log('YAML-EDITOR.JS: Closing modal');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editYamlModal'));
+                if (modal) modal.hide();
+                
+                // Redirigir según la respuesta del servidor
+                if (result.redirect_url) {
+                    console.log('YAML-EDITOR.JS: Redirecting to', result.redirect_url);
+                    window.location.href = result.redirect_url;
+                } else {
+                    console.log('YAML-EDITOR.JS: Redirecting to /assistants');
+                    window.location.href = '/assistants';
+                }
+            } else {
+                throw new Error(result.message || 'Error saving YAML');
+            }
+        } catch (error) {
+            if (window.toast) {
+                window.toast.error('Error saving YAML: ' + error.message);
+            }
+            console.error('YAML-EDITOR.JS: Error saving YAML:', error);
+        } finally {
+            // Restaurar el botón de guardar
+            if (saveButton) {
+                saveButton.disabled = false;
+                saveButton.innerHTML = 'Save';
+            }
+        }
+    } finally {
+        // Siempre liberar el flag de progreso
+        console.log('YAML-EDITOR.JS: Setting saveInProgress flag to false');
+        window.saveInProgress = false;
     }
 }
 

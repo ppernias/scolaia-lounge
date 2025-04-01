@@ -1,7 +1,7 @@
 <!-- Modal para mostrar YAML -->
 <div class="modal fade" id="yamlModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-height: 90vh;">
+        <div class="modal-content" style="height: 90vh;">
             <div class="modal-header">
                 <h5 class="modal-title">Assistant YAML</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -25,12 +25,12 @@
                     </div>
                 </div>
                 <!-- Contenedor para el modo de visualización -->
-                <div id="viewModeContainer">
-                    <pre><code id="yamlContent" class="language-yaml"></code></pre>
+                <div id="viewModeContainer" style="height: calc(100% - 100px); overflow-y: auto;">
+                    <pre style="height: 100%;"><code id="yamlContent" class="language-yaml"></code></pre>
                 </div>
                 <!-- Contenedor para el modo de edición -->
-                <div id="editModeContainer" style="display: none;">
-                    <textarea id="yamlEditor" class="form-control" style="height: 500px; font-family: monospace;"></textarea>
+                <div id="editModeContainer" style="display: none; height: calc(100% - 100px);">
+                    <textarea id="yamlEditor" class="form-control" style="height: 100%; font-family: monospace;"></textarea>
                 </div>
             </div>
         </div>

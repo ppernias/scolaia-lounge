@@ -70,39 +70,23 @@ function addEducationalLevel() {
     select.selectedIndex = 0;
 }
 
-// Función para añadir un elemento a una lista dinámica
-function addListItem(listId, itemType, value = '') {
-    if (!value.trim()) return; // Don't add empty values
-    
-    const list = document.getElementById(listId);
-    const li = document.createElement('li');
-    li.className = 'list-group-item d-flex justify-content-between align-items-center';
-    
-    // All items should use span for consistency
-    li.innerHTML = `
-        <span>${value}</span>
-        <button type="button" class="btn btn-danger btn-sm ms-2" onclick="removeListItem(this)">
-            <i class="bi bi-trash"></i>
-        </button>
-    `;
-    
-    list.appendChild(li);
-    
-    // Clear the input field
-    const inputId = listId.replace('List', 'Input');
-    const input = document.getElementById(inputId);
-    if (input) {
-        input.value = '';
-        input.focus();
-    }
-}
-
 // Función para añadir un caso de uso
 function addUseCase() {
     const input = document.getElementById('useCaseInput');
-    const value = input.value;
+    const value = input.value.trim();
     
-    if (value.trim()) {
+    if (!value) {
+        showToast('warning', 'Please enter a use case');
+        return;
+    }
+    
+    // Usar la función addListItem de yaml-utils.js si está disponible
+    if (typeof window.YAMLUtils !== 'undefined' && typeof window.YAMLUtils.addListItem === 'function') {
+        window.YAMLUtils.addListItem('useCasesList', value, true);
+    } else if (typeof addListItem === 'function') {
+        addListItem('useCasesList', value, true);
+    } else {
+        // Implementación de respaldo si no se encuentra la función
         const list = document.getElementById('useCasesList');
         const li = document.createElement('li');
         li.className = 'list-group-item d-flex justify-content-between align-items-center';
@@ -113,11 +97,11 @@ function addUseCase() {
             </button>
         `;
         list.appendChild(li);
-        
-        // Clear the input field
-        input.value = '';
-        input.focus();
     }
+    
+    // Limpiar el campo de entrada
+    input.value = '';
+    input.focus();
 }
 
 // Función para eliminar un elemento de una lista
@@ -269,5 +253,62 @@ function toggleCoverage(button) {
         icon.classList.remove('bi-chevron-up');
         icon.classList.add('bi-chevron-down');
         button.innerHTML = '<i class="bi bi-chevron-down"></i> More';
+    }
+}
+
+// Variable global para almacenar el ID del asistente a eliminar
+let assistantToDelete = null;
+
+// Función para mostrar el modal de confirmación de eliminación
+function deleteAssistant(assistantId) {
+    // Guardar el ID del asistente a eliminar
+    assistantToDelete = assistantId;
+    
+    // Mostrar el modal de confirmación
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteAssistantModal'));
+    deleteModal.show();
+}
+
+// Función para confirmar y ejecutar la eliminación del asistente
+async function confirmDeleteAssistant() {
+    if (!assistantToDelete) {
+        showToast('danger', 'Error: No assistant selected for deletion');
+        return;
+    }
+    
+    try {
+        // Realizar la petición DELETE al servidor
+        const response = await fetch(`/assistants/${assistantToDelete}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        // Cerrar el modal
+        const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteAssistantModal'));
+        if (deleteModal) {
+            deleteModal.hide();
+        }
+        
+        // Mostrar mensaje de éxito
+        showToast('success', result.message || 'Assistant deleted successfully');
+        
+        // Recargar la página después de un breve retraso
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+    } catch (error) {
+        console.error('Error deleting assistant:', error);
+        showToast('danger', `Error deleting assistant: ${error.message}`);
+    } finally {
+        // Limpiar el ID del asistente
+        assistantToDelete = null;
     }
 }

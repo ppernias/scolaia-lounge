@@ -427,14 +427,22 @@ function getFormData() {
         metadata: {
             description: {},
             author: {},
-            visibility: {}
+            visibility: {},
+            history: []
         },
         assistant_instructions: {
-            style: {
-                guidelines: {}
+            style_guidelines: {
+                formatting_rules: []
             },
             behavior: {},
-            context_and_capabilities: {}
+            context: {},
+            tools: {
+                commands: {},
+                options: {},
+                decorators: {}
+            },
+            capabilities: [],
+            final_notes: []
         }
     };
     
@@ -451,7 +459,7 @@ function getFormData() {
     data.metadata.author.role = document.getElementById('authorRole')?.value || '';
     
     // Metadata - Advanced
-    data.metadata.rights = document.getElementById('rights')?.value || '';
+    data.metadata.rights = document.getElementById('rights')?.value || 'CC by-sa 4.0';
     
     // Metadata - Educational Level
     data.metadata.description.educational_level = getListItems('educationalLevelList');
@@ -476,6 +484,11 @@ function getFormData() {
             .filter(line => line.length > 0);
     }
     
+    // Si no hay historial, agregar uno por defecto
+    if (!data.metadata.history || data.metadata.history.length === 0) {
+        data.metadata.history = ['Initial version created on ' + new Date().toISOString().split('T')[0]];
+    }
+    
     // Reference to the instructions object
     const instructions = data.assistant_instructions;
     
@@ -484,9 +497,9 @@ function getFormData() {
     instructions.help_text = document.getElementById('helpText')?.value || '';
     
     // Assistant Instructions - Style Guidelines
-    instructions.style.guidelines.tone = document.getElementById('tone')?.value || '';
-    instructions.style.guidelines.level_of_detail = document.getElementById('levelOfDetail')?.value || '';
-    instructions.style.guidelines.formatting_rules = getListItems('formattingRulesList');
+    instructions.style_guidelines.tone = document.getElementById('tone')?.value || '';
+    instructions.style_guidelines.level_of_detail = document.getElementById('levelOfDetail')?.value || '';
+    instructions.style_guidelines.formatting_rules = getListItems('formattingRulesList');
     
     // Assistant Instructions - Behavior
     instructions.behavior.on_greeting = document.getElementById('onGreeting')?.value || '';
@@ -496,11 +509,13 @@ function getFormData() {
     instructions.behavior.on_tool = document.getElementById('onTool')?.value || '';
     instructions.behavior.prompt_visibility = document.getElementById('promptVisibility')?.value || '';
     
-    // Assistant Instructions - Context and Capabilities
-    instructions.context_and_capabilities.context_definition = getListItems('contextDefinitionList');
-    instructions.context_and_capabilities.capabilities = getListItems('capabilitiesList');
-    instructions.context_and_capabilities.integration_strategy = getListItems('integrationStrategyList');
-    instructions.context_and_capabilities.user_data_handling = getListItems('userDataHandlingList');
+    // Assistant Instructions - Context
+    instructions.context.context_definition = getListItems('contextDefinitionList');
+    instructions.context.integration_strategy = getListItems('integrationStrategyList');
+    instructions.context.user_data_handling = getListItems('userDataHandlingList');
+    
+    // Assistant Instructions - Capabilities
+    instructions.capabilities = getListItems('capabilitiesList');
     
     // Assistant Instructions - Final Notes
     instructions.final_notes = getListItems('finalNotesList');
@@ -509,27 +524,34 @@ function getFormData() {
     if (typeof window.YAMLTools !== 'undefined' && typeof window.YAMLTools.getToolsData === 'function') {
         const toolsData = window.YAMLTools.getToolsData();
         if (toolsData) {
-            data.assistant_instructions.tools = toolsData;
+            instructions.tools = toolsData;
         }
+    }
+    
+    // Si no hay herramientas, agregar estructuras por defecto
+    if (!instructions.tools.commands || Object.keys(instructions.tools.commands).length === 0) {
+        instructions.tools.commands = { '/help': 'Show help information' };
+    }
+    if (!instructions.tools.options || Object.keys(instructions.tools.options).length === 0) {
+        instructions.tools.options = { '/option': 'Example option' };
+    }
+    if (!instructions.tools.decorators || Object.keys(instructions.tools.decorators).length === 0) {
+        instructions.tools.decorators = { '+++decorator': 'Example decorator' };
     }
     
     // Preserve other fields that might exist in the original data
     if (window.yamlData) {
-        // Preserve tools if they exist and we didn't collect new ones
-        if (window.yamlData.tools && (!data.tools || Object.keys(data.tools).length === 0)) {
-            data.tools = window.yamlData.tools;
-        }
-        
         // Preserve any other fields in assistant_instructions
         if (window.yamlData.assistant_instructions) {
             for (const key in window.yamlData.assistant_instructions) {
-                if (!data.assistant_instructions.hasOwnProperty(key) && 
-                    key !== 'style' && 
+                if (!instructions.hasOwnProperty(key) && 
+                    key !== 'style_guidelines' && 
                     key !== 'behavior' && 
-                    key !== 'context_and_capabilities' && 
+                    key !== 'context' && 
                     key !== 'final_notes' &&
-                    key !== 'tools') {
-                    data.assistant_instructions[key] = window.yamlData.assistant_instructions[key];
+                    key !== 'tools' &&
+                    key !== 'capabilities') {
+                    instructions[key] = window.yamlData.assistant_instructions[key];
                 }
             }
         }
@@ -578,9 +600,9 @@ function initializeYamlEditorEvents() {
     document.getElementById('saveYamlBtnFooter')?.addEventListener('click', function() {
         console.log('Save button clicked');
         if (typeof saveYamlChanges === 'function') {
-            saveYamlChanges();
+            saveYamlChanges(false); // Pasar explicitamente false para indicar que no debe finalizar
         } else if (typeof window.YAMLEditor !== 'undefined' && typeof window.YAMLEditor.saveYamlChanges === 'function') {
-            window.YAMLEditor.saveYamlChanges();
+            window.YAMLEditor.saveYamlChanges(false); // Pasar explicitamente false para indicar que no debe finalizar
         } else {
             console.error('saveYamlChanges function not found');
             if (window.toast) {
@@ -648,61 +670,60 @@ function initializeYamlEditorEvents() {
 
 // Function to add an item to a list
 function addListItem(listId, text, useTagStyle = false) {
-    console.log(`Adding item to ${listId}: ${text}`);
-    const list = document.getElementById(listId);
-    if (!list) {
-        console.error(`List with ID ${listId} not found`);
+    console.log(`addListItem called with: listId=${listId}, text=${text}, useTagStyle=${useTagStyle}`);
+    
+    if (!text || text.trim() === '') {
+        console.warn('addListItem: text is empty, not adding item');
         return;
     }
     
-    // Verificar si el elemento ya existe en la lista
-    const existingItems = list.querySelectorAll('.list-group-item');
-    for (let i = 0; i <existingItems.length; i++) {
-        if (existingItems[i].textContent.trim() === text) {
-            console.log(`Item '${text}' already exists in ${listId}`);
-            return;
-        }
+    const list = document.getElementById(listId);
+    if (!list) {
+        console.error(`addListItem: list with id ${listId} not found`);
+        return;
     }
     
+    console.log(`addListItem: list found, adding item to ${listId}`);
+    
+    // Verificar si el elemento ya existe en la lista
+    const items = Array.from(list.querySelectorAll('li span, li .tag-text'))
+        .map(el => el.textContent.trim().toLowerCase());
+    
+    if (items.includes(text.trim().toLowerCase())) {
+        console.warn(`addListItem: item "${text}" already exists in list ${listId}`);
+        return; // No añadir duplicados
+    }
+    
+    const li = document.createElement('li');
+    
     if (useTagStyle) {
-        // Crear un contenedor para las etiquetas si no existe
-        if (!list.classList.contains('d-flex')) {
-            list.classList.add('d-flex', 'flex-wrap', 'gap-2');
-        }
-        
-        // Crear la etiqueta con estilo de badge
-        const tag = document.createElement('span');
-        tag.classList.add('badge', 'bg-primary', 'text-white', 'p-2', 'mb-2', 'd-flex', 'align-items-center');
-        tag.innerHTML = `
-            <span class="me-1">${text}</span>
-            <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.5rem;"></button>
+        // Estilo de etiqueta
+        li.className = 'badge bg-primary me-2 mb-2 p-2 d-flex align-items-center';
+        li.innerHTML = `
+            <span class="tag-text">${text}</span>
+            <button type="button" class="btn-close btn-close-white ms-2" aria-label="Close" onclick="removeListItem(this.parentNode)"></button>
         `;
-        
-        // Agregar evento para eliminar la etiqueta
-        const closeButton = tag.querySelector('.btn-close');
-        closeButton.addEventListener('click', function() {
-            tag.remove();
-        });
-        
-        list.appendChild(tag);
     } else {
-        // Estilo de lista tradicional
-        const item = document.createElement('div');
-        item.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
-        
-        const textSpan = document.createElement('span');
-        textSpan.textContent = text;
-        item.appendChild(textSpan);
-        
-        const deleteButton = document.createElement('button');
-        deleteButton.classList.add('btn', 'btn-sm', 'btn-outline-danger');
-        deleteButton.innerHTML = '<i class="bi bi-trash"></i>';
-        deleteButton.addEventListener('click', function() {
-            item.remove();
-        });
-        
-        item.appendChild(deleteButton);
-        list.appendChild(item);
+        // Estilo de lista normal
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        li.innerHTML = `
+            <span>${text}</span>
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeListItem(this.parentNode)">
+                <i class="bi bi-trash"></i>
+            </button>
+        `;
+    }
+    
+    list.appendChild(li);
+    console.log(`addListItem: item "${text}" added successfully to ${listId}`);
+    
+    // Limpiar el campo de entrada si existe
+    const inputId = listId.replace('List', '');
+    const input = document.getElementById('new' + inputId);
+    if (input) {
+        console.log(`addListItem: clearing input field ${input.id}`);
+        input.value = '';
+        input.focus();
     }
 }
 
@@ -734,4 +755,8 @@ if (typeof module !== 'undefined' && module.exports) {
         initializeCharCountListeners,
         addListItem
     };
+    // También hacer addListItem disponible globalmente para compatibilidad
+    window.addListItem = addListItem;
+    // Asegurarse de que la función removeListItem también esté disponible globalmente
+    window.removeListItem = removeListItem;
 }

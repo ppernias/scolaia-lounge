@@ -34,9 +34,22 @@ document.addEventListener('DOMContentLoaded', function() {
         if (saveButton) {
             saveButton.addEventListener('click', function() {
                 if (typeof saveYamlChanges === 'function') {
-                    saveYamlChanges();
+                    saveYamlChanges(false); // Pasar explicitamente false para indicar que no debe finalizar
                 } else if (window.YAMLEditor && typeof window.YAMLEditor.saveYamlChanges === 'function') {
-                    window.YAMLEditor.saveYamlChanges();
+                    window.YAMLEditor.saveYamlChanges(false); // Pasar explicitamente false para indicar que no debe finalizar
+                }
+            });
+        }
+        
+        // Add event listener for finish button
+        const finishButton = document.getElementById('finishYamlBtn');
+        if (finishButton) {
+            finishButton.addEventListener('click', function() {
+                console.log('Finish button clicked');
+                if (typeof saveYamlChanges === 'function') {
+                    saveYamlChanges(true); // Pasar explicitamente true para indicar que debe finalizar
+                } else if (window.YAMLEditor && typeof window.YAMLEditor.saveYamlChanges === 'function') {
+                    window.YAMLEditor.saveYamlChanges(true); // Pasar explicitamente true para indicar que debe finalizar
                 }
             });
         }
@@ -120,10 +133,10 @@ window.editYamlContent = function(assistantId) {
     }
 };
 
-window.saveYamlChanges = function() {
+window.saveYamlChanges = function(shouldFinish = false) {
     // Llamar directamente a la función del módulo para evitar recursión
     if (window.YAMLEditor && typeof window.YAMLEditor.saveYamlChanges === 'function') {
-        window.YAMLEditor.saveYamlChanges();
+        window.YAMLEditor.saveYamlChanges(shouldFinish);
     }
 };
 
