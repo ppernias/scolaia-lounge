@@ -1,285 +1,678 @@
-<!-- Modal para editar YAML -->
 <div class="modal fade" id="editYamlModal" tabindex="-1" aria-labelledby="editYamlModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <input type="hidden" id="currentAssistantId" value="{{ assistant.id if assistant else '' }}">
-        <input type="hidden" id="currentUsername" value="{{ current_user.username }}">
-        <input type="hidden" id="currentFullName" value="{{ current_user.full_name }}">
-        <input type="hidden" id="editorMode" value="edit">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editYamlModalLabel">Edit Assistant YAML</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <!-- Incluir el CSS para las herramientas -->
+            <link rel="stylesheet" href="/static/css/yaml-tools.css">
             <div class="modal-body">
-                <ul class="nav nav-tabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab">Basic Info</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#author" type="button" role="tab">Author</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#context" type="button" role="tab">Context</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#system" type="button" role="tab">System</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#style" type="button" role="tab">Style Guidelines</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tools" type="button" role="tab">Tools</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#raw" type="button" role="tab">Raw YAML</button>
-                    </li>
-                </ul>
-                <div class="tab-content p-3">
-                    <!-- Raw YAML Tab -->
-                    <div class="tab-pane fade" id="raw" role="tabpanel">
-                        <textarea id="yamlEditor" class="form-control yaml-editor font-monospace" rows="20" 
-                                spellcheck="false" wrap="off"></textarea>
+                <input type="hidden" id="yamlContent" name="yamlContent" value="">
+                <input type="hidden" id="currentAssistantId" name="currentAssistantId" value="">
+                <input type="hidden" id="editorMode" name="editorMode" value="">
+                <input type="hidden" id="currentFullName" name="currentFullName" value="">
+                
+                <!-- Botones para alternar entre vista de formulario y YAML crudo -->
+                <div class="d-flex justify-content-end mb-3">
+                    <button type="button" id="viewRawYamlBtn" class="btn btn-outline-secondary">
+                        <i class="bi bi-code"></i> View Raw YAML
+                    </button>
+                </div>
+                
+                <!-- Contenedor para el formulario -->
+                <div id="formContainer">
+                    <!-- Pestañas para separar metadata y assistant_instructions -->
+                    <ul class="nav nav-tabs" id="yamlTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="metadata-tab" data-bs-toggle="tab" data-bs-target="#metadata-content" 
+                                    type="button" role="tab" aria-controls="metadata-content" aria-selected="true">
+                                Metadata
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="instructions-tab" data-bs-toggle="tab" data-bs-target="#instructions-content" 
+                                    type="button" role="tab" aria-controls="instructions-content" aria-selected="false">
+                                Assistant Instructions
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tools-tab" data-bs-toggle="tab" data-bs-target="#tools-content" 
+                                    type="button" role="tab" aria-controls="tools-content" aria-selected="false">
+                                Tools
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <!-- Contenido de las pestañas -->
+                    <div class="tab-content" id="yamlTabsContent">
+                        <!-- Pestaña de Metadata -->
+                        <div class="tab-pane fade show active" id="metadata-content" role="tabpanel" aria-labelledby="metadata-tab">
+                            <!-- Campos Básicos -->
+                            <div class="card mb-4 mt-3 border-primary">
+                                <div class="card-header bg-primary">
+                                    <h4 class="m-0 text-white">Basic</h4>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Title y Visibility -->
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="title" placeholder="Title">
+                                                <label for="title">Title <span class="text-danger">*</span></label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                <select class="form-select" id="visibility">
+                                                    <option value="true">Public</option>
+                                                    <option value="false">Private</option>
+                                                </select>
+                                                <label for="visibility">Visibility <span class="text-danger">*</span></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Summary y Coverage -->
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                <textarea class="form-control" id="summary" style="height: 100px;"></textarea>
+                                                <label for="summary">Summary <span class="text-danger">*</span></label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                <textarea class="form-control" id="coverage" style="height: 100px;"></textarea>
+                                                <label for="coverage">Coverage</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Author Information -->
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="authorName" placeholder="Author Name">
+                                                <label for="authorName">Author Name</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                <input type="email" class="form-control" id="authorEmail" placeholder="Author Email">
+                                                <label for="authorEmail">Author Contact</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="authorOrganization" placeholder="Organization">
+                                                <label for="authorOrganization">Author Organization</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="authorRole" placeholder="Role">
+                                                <label for="authorRole">Author Role</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Educational Level -->
+                                    <div class="row mb-3">
+                                        <div class="col-12">
+                                            <label class="form-label">Educational Level</label>
+                                            <div class="input-group mb-2">
+                                                <input type="text" class="form-control" id="newEducationalLevel" placeholder="Add educational level">
+                                                <button class="btn btn-outline-secondary" type="button" id="addEducationalLevelBtn">
+                                                    <i class="bi bi-plus"></i> Add
+                                                </button>
+                                            </div>
+                                            <div id="educationalLevelList" class="d-flex flex-wrap gap-2 mt-2">
+                                                <!-- Los niveles educativos se añadirán aquí dinámicamente -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Keywords -->
+                                    <div class="row mb-3">
+                                        <div class="col-12">
+                                            <label class="form-label">Keywords</label>
+                                            <div class="input-group mb-2">
+                                                <input type="text" class="form-control" id="newKeyword" placeholder="Add keyword">
+                                                <button class="btn btn-outline-secondary" type="button" id="addKeywordBtn">
+                                                    <i class="bi bi-plus"></i> Add
+                                                </button>
+                                            </div>
+                                            <div id="keywordsList" class="d-flex flex-wrap gap-2 mt-2">
+                                                <!-- Las palabras clave se añadirán aquí dinámicamente -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Use Cases -->
+                                    <div class="row mb-3">
+                                        <div class="col-12">
+                                            <label class="form-label">Use Cases</label>
+                                            <div class="input-group mb-2">
+                                                <input type="text" class="form-control" id="newUseCase" placeholder="Add use case">
+                                                <button class="btn btn-outline-secondary" type="button" id="addUseCaseBtn">
+                                                    <i class="bi bi-plus"></i> Add
+                                                </button>
+                                            </div>
+                                            <div id="useCasesList" class="d-flex flex-wrap gap-2 mt-2">
+                                                <!-- Los casos de uso se añadirán aquí dinámicamente -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Campos Avanzados -->
+                            <div class="card mb-4 border-secondary">
+                                <div class="card-header bg-secondary">
+                                    <h4 class="m-0 text-white">Advanced</h4>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Role (System Prompt) -->
+                                    <div class="row mb-3" style="display: none;"><!-- Oculto para evitar duplicados -->
+                                        <div class="col-12">
+                                            <div class="form-floating mb-3">
+                                                <textarea class="form-control" id="role-duplicate" style="height: 180px;" maxlength="2000"></textarea>
+                                                <label for="role-duplicate">Role <span class="text-danger">*</span></label>
+                                                <div class="d-flex justify-content-between">
+                                                    <small class="text-muted">Describe the assistant's role and capabilities</small>
+                                                    <small class="text-muted"><span id="roleCharCount-duplicate">0</span>/2000</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Rights -->
+                                    <div class="row mb-3">
+                                        <div class="col-12">
+                                            <div class="form-floating mb-3">
+                                                <select class="form-select" id="rights">
+                                                    <option value="">Select license</option>
+                                                    <option value="CC By-Sa 4.0">CC By-Sa 4.0</option>
+                                                    <option value="CC By 4.0">CC By 4.0</option>
+                                                    <option value="CC By-Nc 4.0">CC By-Nc 4.0</option>
+                                                    <option value="CC By-Nc-Sa 4.0">CC By-Nc-Sa 4.0</option>
+                                                    <option value="CC By-Nd 4.0">CC By-Nd 4.0</option>
+                                                    <option value="CC By-Nc-Nd 4.0">CC By-Nc-Nd 4.0</option>
+                                                    <option value="All Rights Reserved">All Rights Reserved</option>
+                                                </select>
+                                                <label for="rights">Rights</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- History -->
+                                    <div class="row mb-3">
+                                        <div class="col-12">
+                                            <div class="form-floating mb-3">
+                                                <textarea class="form-control" id="historyEditor" style="height: 150px;"></textarea>
+                                                <label for="historyEditor">History (Editable)</label>
+                                            </div>
+                                            <div class="form-text small">
+                                                <i class="bi bi-info-circle"></i> Edit the history carefully. Each entry should be on a separate line with the format: "[Action] by [User] on [Date]".
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pestaña de Assistant Instructions -->
+                        <div class="tab-pane fade" id="instructions-content" role="tabpanel" aria-labelledby="instructions-tab">
+                            <!-- Sección Basic comentada temporalmente ya que todo parece ser Advanced
+                            <div class="card mb-4 mt-3 border-primary">
+                                <div class="card-header bg-primary">
+                                    <h4 class="m-0 text-white">Basic</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle"></i> Configure basic settings
+                                    </div>
+                                </div>
+                            </div>
+                            -->
+                            
+                            <!-- Campos Avanzados -->
+                            <div class="card mb-4 border-secondary">
+                                <div class="card-header bg-secondary">
+                                    <h4 class="m-0 text-white">Advanced</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-warning mb-4">
+                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                        <strong>Warning:</strong> Modify these fields with caution as they may change the assistant's behavior and lose existing functionality.
+                                    </div>
+                                    
+                                    <div class="accordion" id="instructionsAccordion">
+                                        <!-- General (Role y Help Text) -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="generalHeading">
+                                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#generalCollapse" aria-expanded="true" aria-controls="generalCollapse">
+                                                    <span class="brand-text">General</span>
+                                                </button>
+                                            </h2>
+                                            <div id="generalCollapse" class="accordion-collapse collapse show" aria-labelledby="generalHeading" data-bs-parent="#instructionsAccordion">
+                                                <div class="accordion-body">
+                                                    <!-- Role (System Prompt) -->
+                                                    <div class="row mb-3">
+                                                        <div class="col-12">
+                                                            <div class="form-floating mb-3">
+                                                                <textarea class="form-control" id="role" style="height: 180px;" maxlength="2000"></textarea>
+                                                                <label for="role">Role <span class="text-danger">*</span></label>
+                                                                <div class="d-flex justify-content-between">
+                                                                    <small class="text-muted">Describe the assistant's role and capabilities</small>
+                                                                    <small class="text-muted"><span id="roleCharCount">0</span>/2000</small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Help Text -->
+                                                    <div class="row mb-3">
+                                                        <div class="col-12">
+                                                            <div class="form-floating mb-3">
+                                                                <textarea class="form-control" id="helpText" style="height: 180px;"></textarea>
+                                                                <label for="helpText">Help Text <span class="text-danger">*</span></label>
+                                                                <small class="text-muted">Text to display when the user requests help</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Capabilities -->
+                                                    <div class="row mb-3">
+                                                        <div class="col-12">
+                                                            <label class="form-label">Capabilities</label>
+                                                            <div class="input-group mb-2">
+                                                                <input type="text" class="form-control" id="newCapability" placeholder="Add capability">
+                                                                <button class="btn btn-outline-secondary add-list-item" type="button" data-list="capabilitiesList" data-input="newCapability" data-type="capability">
+                                                                    <i class="bi bi-plus"></i> Add
+                                                                </button>
+                                                            </div>
+                                                            <ul class="list-group" id="capabilitiesList">
+                                                                <!-- Items will be added here dynamically -->
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Behavior -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="behaviorHeading">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#behaviorCollapse" aria-expanded="false" aria-controls="behaviorCollapse">
+                                                    <span class="brand-text">Behavior</span>
+                                                </button>
+                                            </h2>
+                                            <div id="behaviorCollapse" class="accordion-collapse collapse" aria-labelledby="behaviorHeading" data-bs-parent="#instructionsAccordion">
+                                                <div class="accordion-body">
+                                                    <div class="row mb-3">
+                                                        <div class="col-md-6">
+                                                            <div class="form-floating mb-3">
+                                                                <textarea class="form-control" id="onGreeting" style="height: 100px;"></textarea>
+                                                                <label for="onGreeting">On Greeting</label>
+                                                                <small class="text-muted">What the assistant should do when greeting the user</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-floating mb-3">
+                                                                <textarea class="form-control" id="onHelpCommand" style="height: 100px;"></textarea>
+                                                                <label for="onHelpCommand">On Help Command</label>
+                                                                <small class="text-muted">What the assistant should do when the user requests help</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mb-3">
+                                                        <div class="col-md-6">
+                                                            <div class="form-floating mb-3">
+                                                                <textarea class="form-control" id="invalidCommandResponse" style="height: 100px;"></textarea>
+                                                                <label for="invalidCommandResponse">Invalid Command Response</label>
+                                                                <small class="text-muted">Response when an invalid command is used</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-floating mb-3">
+                                                                <textarea class="form-control" id="unrelatedTopicResponse" style="height: 100px;"></textarea>
+                                                                <label for="unrelatedTopicResponse">Unrelated Topic Response</label>
+                                                                <small class="text-muted">Response when the user asks about an unrelated topic</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mb-3">
+                                                        <div class="col-md-6">
+                                                            <div class="form-floating mb-3">
+                                                                <textarea class="form-control" id="onTool" style="height: 100px;"></textarea>
+                                                                <label for="onTool">On Tool</label>
+                                                                <small class="text-muted">What the assistant should do when a tool is used</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-floating mb-3">
+                                                                <select class="form-select" id="promptVisibility" style="height: 100px;">
+                                                                    <option value="Hidden">Hidden</option>
+                                                                    <option value="Visible">Visible</option>
+                                                                </select>
+                                                                <label for="promptVisibility">Prompt Visibility</label>
+                                                                <small class="text-muted">Whether the system prompt should be visible to users</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Context -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="contextHeading">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#contextCollapse" aria-expanded="false" aria-controls="contextCollapse">
+                                                    <span class="brand-text">Context</span>
+                                                </button>
+                                            </h2>
+                                            <div id="contextCollapse" class="accordion-collapse collapse" aria-labelledby="contextHeading" data-bs-parent="#instructionsAccordion">
+                                                <div class="accordion-body">
+                                                    <!-- Context Definition -->
+                                                    <div class="row mb-3">
+                                                        <div class="col-12">
+                                                            <label class="form-label">Context Definition</label>
+                                                            <div class="input-group mb-2">
+                                                                <input type="text" class="form-control" id="newContextDefinition" placeholder="Add context definition">
+                                                                <button class="btn btn-outline-secondary add-list-item" type="button" data-list="contextDefinitionList" data-input="newContextDefinition" data-type="context-definition">
+                                                                    <i class="bi bi-plus"></i> Add
+                                                                </button>
+                                                            </div>
+                                                            <ul class="list-group" id="contextDefinitionList">
+                                                                <!-- Items will be added here dynamically -->
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Integration Strategy -->
+                                                    <div class="row mb-3">
+                                                        <div class="col-12">
+                                                            <label class="form-label">Integration Strategy</label>
+                                                            <div class="input-group mb-2">
+                                                                <input type="text" class="form-control" id="newIntegrationStrategy" placeholder="Add integration strategy">
+                                                                <button class="btn btn-outline-secondary add-list-item" type="button" data-list="integrationStrategyList" data-input="newIntegrationStrategy" data-type="integration-strategy">
+                                                                    <i class="bi bi-plus"></i> Add
+                                                                </button>
+                                                            </div>
+                                                            <ul class="list-group" id="integrationStrategyList">
+                                                                <!-- Items will be added here dynamically -->
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- User Data Handling -->
+                                                    <div class="row mb-3">
+                                                        <div class="col-12">
+                                                            <label class="form-label">User Data Handling</label>
+                                                            <div class="input-group mb-2">
+                                                                <input type="text" class="form-control" id="newUserDataHandling" placeholder="Add user data handling">
+                                                                <button class="btn btn-outline-secondary add-list-item" type="button" data-list="userDataHandlingList" data-input="newUserDataHandling" data-type="user-data-handling">
+                                                                    <i class="bi bi-plus"></i> Add
+                                                                </button>
+                                                            </div>
+                                                            <ul class="list-group" id="userDataHandlingList">
+                                                                <!-- Items will be added here dynamically -->
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Style Guidelines -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="styleHeading">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#styleCollapse" aria-expanded="false" aria-controls="styleCollapse">
+                                                    <span class="brand-text">Style Guidelines</span>
+                                                </button>
+                                            </h2>
+                                            <div id="styleCollapse" class="accordion-collapse collapse" aria-labelledby="styleHeading" data-bs-parent="#instructionsAccordion">
+                                                <div class="accordion-body">
+                                                    <!-- Tone and Level of Detail -->
+                                                    <div class="row mb-3">
+                                                        <div class="col-md-6">
+                                                            <div class="form-floating mb-3">
+                                                                <select class="form-select" id="tone">
+                                                                    <option value="professional">Professional</option>
+                                                                    <option value="casual">Casual</option>
+                                                                    <option value="friendly">Friendly</option>
+                                                                    <option value="formal">Formal</option>
+                                                                    <option value="technical">Technical</option>
+                                                                </select>
+                                                                <label for="tone">Tone</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-floating mb-3">
+                                                                <select class="form-select" id="levelOfDetail">
+                                                                    <option value="minimal">Minimal</option>
+                                                                    <option value="moderate">Moderate</option>
+                                                                    <option value="detailed">Detailed</option>
+                                                                    <option value="comprehensive">Comprehensive</option>
+                                                                </select>
+                                                                <label for="levelOfDetail">Level of Detail</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Formatting Rules -->
+                                                    <div class="row mb-3">
+                                                        <div class="col-12">
+                                                            <label class="form-label">Formatting Rules</label>
+                                                            <div class="input-group mb-2">
+                                                                <input type="text" class="form-control" id="newFormattingRule" placeholder="Add formatting rule">
+                                                                <button class="btn btn-outline-secondary add-list-item" type="button" data-list="formattingRulesList" data-input="newFormattingRule" data-type="formatting-rule">
+                                                                    <i class="bi bi-plus"></i> Add
+                                                                </button>
+                                                            </div>
+                                                            <ul class="list-group" id="formattingRulesList">
+                                                                <!-- Items will be added here dynamically -->
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Final Notes -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="finalNotesHeading">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#finalNotesCollapse" aria-expanded="false" aria-controls="finalNotesCollapse">
+                                                    <span class="brand-text">Final Notes</span>
+                                                </button>
+                                            </h2>
+                                            <div id="finalNotesCollapse" class="accordion-collapse collapse" aria-labelledby="finalNotesHeading" data-bs-parent="#instructionsAccordion">
+                                                <div class="accordion-body">
+                                                    <div class="row mb-3">
+                                                        <div class="col-12">
+                                                            <label class="form-label">Final Notes</label>
+                                                            <div class="input-group mb-2">
+                                                                <input type="text" class="form-control" id="newFinalNote" placeholder="Add final note">
+                                                                <button class="btn btn-outline-secondary add-list-item" type="button" data-list="finalNotesList" data-input="newFinalNote" data-type="final-note">
+                                                                    <i class="bi bi-plus"></i> Add
+                                                                </button>
+                                                            </div>
+                                                            <ul class="list-group" id="finalNotesList">
+                                                                <!-- Items will be added here dynamically -->
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pestaña de Tools -->
+                        <div class="tab-pane fade" id="tools-content" role="tabpanel" aria-labelledby="tools-tab">
+                            <div class="card mb-4 mt-3 border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h4 class="m-0 text-white">Tools Configuration</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="accordion" id="toolsAccordion">
+                                        <!-- Commands Section -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="commandsHeading">
+                                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#commandsCollapse" aria-expanded="true" aria-controls="commandsCollapse">
+                                                    <span class="brand-text">Commands</span>
+                                                </button>
+                                            </h2>
+                                            <div id="commandsCollapse" class="accordion-collapse collapse show" aria-labelledby="commandsHeading" data-bs-parent="#toolsAccordion">
+                                                <div class="accordion-body">
+                                                    <div class="input-group mb-3">
+                                                        <input type="text" class="form-control" id="newCommand" placeholder="Add command (without / prefix)" maxlength="20" style="max-width: 300px;">
+                                                        <button class="btn btn-outline-secondary add-tool-item" type="button" data-type="command">
+                                                            <i class="bi bi-plus"></i> Add Command
+                                                        </button>
+                                                    </div>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-striped table-tools">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="width: 18%;">Command</th>
+                                                                    <th style="width: 20%;">Display Name</th>
+                                                                    <th style="width: 52%;">Description</th>
+                                                                    <th style="width: 10%;"></th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="commandsList">
+                                                                <!-- Commands will be added here dynamically -->
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Options Section -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="optionsHeading">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#optionsCollapse" aria-expanded="false" aria-controls="optionsCollapse">
+                                                    <span class="brand-text">Options</span>
+                                                </button>
+                                            </h2>
+                                            <div id="optionsCollapse" class="accordion-collapse collapse" aria-labelledby="optionsHeading" data-bs-parent="#toolsAccordion">
+                                                <div class="accordion-body">
+                                                    <div class="input-group mb-3">
+                                                        <input type="text" class="form-control" id="newOption" placeholder="Add option (without / prefix)" maxlength="20" style="max-width: 300px;">
+                                                        <button class="btn btn-outline-secondary add-tool-item" type="button" data-type="option">
+                                                            <i class="bi bi-plus"></i> Add Option
+                                                        </button>
+                                                    </div>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-striped table-tools">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="width: 18%;">Option</th>
+                                                                    <th style="width: 20%;">Display Name</th>
+                                                                    <th style="width: 52%;">Description</th>
+                                                                    <th style="width: 10%;"></th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="optionsList">
+                                                                <!-- Options will be added here dynamically -->
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Decorators Section -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="decoratorsHeading">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#decoratorsCollapse" aria-expanded="false" aria-controls="decoratorsCollapse">
+                                                    <span class="brand-text">Decorators</span>
+                                                </button>
+                                            </h2>
+                                            <div id="decoratorsCollapse" class="accordion-collapse collapse" aria-labelledby="decoratorsHeading" data-bs-parent="#toolsAccordion">
+                                                <div class="accordion-body">
+                                                    <div class="input-group mb-3">
+                                                        <input type="text" class="form-control" id="newDecorator" placeholder="Add decorator (without +++ prefix)" maxlength="20" style="max-width: 300px;">
+                                                        <button class="btn btn-outline-secondary add-tool-item" type="button" data-type="decorator">
+                                                            <i class="bi bi-plus"></i> Add Decorator
+                                                        </button>
+                                                    </div>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-striped table-tools">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="width: 18%;">Decorator</th>
+                                                                    <th style="width: 20%;">Display Name</th>
+                                                                    <th style="width: 52%;">Description</th>
+                                                                    <th style="width: 10%;"></th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="decoratorsList">
+                                                                <!-- Decorators will be added here dynamically -->
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-
-                    <!-- Tab de Información Básica -->
-                    <div class="tab-pane fade show active" id="basic" role="tabpanel">
-                        <div class="mb-3">
-                            <label for="assistantName" class="form-label font-audiowide">Title</label>
-                            <input type="text" class="form-control" id="assistantName">
-                        </div>
-                        <div class="mb-3">
-                            <label for="assistantDescription" class="form-label font-audiowide">Summary</label>
-                            <textarea class="form-control" id="assistantDescription" rows="3"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="assistantCoverage" class="form-label font-audiowide">Coverage</label>
-                            <textarea class="form-control" id="assistantCoverage" rows="2"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label font-audiowide">Educational Level</label>
-                            <div id="educationalLevelList" class="list-group mb-2"></div>
-                            <div class="input-group">
-                                <select class="form-select" id="educationalLevelInput">
-                                    <option value="">Select an educational level...</option>
-                                    <option value="Postgraduate Higher Education">Postgraduate Higher Education</option>
-                                    <option value="Undergraduate Higher Education">Undergraduate Higher Education</option>
-                                    <option value="Technical / Vocational Education">Technical / Vocational Education</option>
-                                    <option value="Upper Secondary Education">Upper Secondary Education</option>
-                                    <option value="Lower Secondary Education">Lower Secondary Education</option>
-                                    <option value="Primary Education">Primary Education</option>
-                                    <option value="Pre-School / Early Childhood Education">Pre-School / Early Childhood Education</option>
-                                    <option value="Professional Development / Continuing Education">Professional Development / Continuing Education</option>
-                                    <option value="other">Other</option>
-                                </select>
-                                <button class="btn btn-outline-secondary" type="button" onclick="addEducationalLevel()">Add</button>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label font-audiowide">Use Cases</label>
-                            <div id="useCasesList" class="list-group mb-2"></div>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="useCaseInput" placeholder="Enter a use case">
-                                <button class="btn btn-outline-secondary" type="button" onclick="addUseCase()">Add</button>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label font-audiowide">Keywords</label>
-                            <div id="keywordsContainer" class="mb-2">
-                                <div id="keywordsList" class="d-flex flex-wrap gap-2"></div>
-                            </div>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="keywordInput" placeholder="Enter a keyword">
-                                <button class="btn btn-outline-secondary" type="button" onclick="addKeyword()">Add</button>
-                            </div>
-                        </div>
-                        <hr class="my-4">
-                        <!-- Campos de Metadata -->
-                        <div class="mb-3">
-                            <label for="assistantRights" class="form-label font-audiowide">Rights</label>
-                            <div id="assistantRights" class="readonly-field"></div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label font-audiowide">History</label>
-                            <ul id="historyList" class="list-group">
-                                <!-- History entries will be added here dynamically -->
-                            </ul>
-                        </div>
-                        <div class="mb-3">
-                            <label for="assistantVisibility" class="form-label font-audiowide">Visibility</label>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="assistantVisibility">
-                                <label class="form-check-label" for="assistantVisibility">Public</label>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="minorChanges" checked onchange="toggleNewVersion()">
-                                <label class="form-check-label" for="minorChanges">
-                                    Minor changes (don't update history)
-                                </label>
-                            </div>
-                            <div class="form-check mt-2">
-                                <input class="form-check-input" type="checkbox" id="createNewVersion" disabled>
-                                <label class="form-check-label" for="createNewVersion">
-                                    Create new version of the assistant
-                                </label>
-                            </div>
+                </div>
+                
+                <!-- Contenedor para el YAML crudo -->
+                <div id="rawYamlContainer" style="display: none;">
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label for="rawYaml" class="form-label">Raw YAML</label>
+                            <textarea class="form-control" id="rawYaml" rows="20" style="font-family: monospace;"></textarea>
                         </div>
                     </div>
-
-                    <!-- Author Tab -->
-                    <div class="tab-pane fade" id="author" role="tabpanel">
-                        <div class="mb-3">
-                            <label for="authorName" class="form-label font-audiowide">Author Name</label>
-                            <input type="text" class="form-control" id="authorName">
-                        </div>
-                        <div class="mb-3">
-                            <label for="authorRole" class="form-label font-audiowide">Role</label>
-                            <input type="text" class="form-control" id="authorRole">
-                        </div>
-                        <div class="mb-3">
-                            <label for="authorContact" class="form-label font-audiowide">Contact</label>
-                            <input type="text" class="form-control" id="authorContact">
-                        </div>
-                        <div class="mb-3">
-                            <label for="authorOrganization" class="form-label font-audiowide">Organization</label>
-                            <input type="text" class="form-control" id="authorOrganization">
+                </div>
+                
+                <!-- Versioning -->
+                <div class="row mt-4" id="versioningContainer">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="createNewVersion">
+                            <label class="form-check-label" for="createNewVersion">
+                                Create new version
+                            </label>
                         </div>
                     </div>
-
-                    <!-- Context Tab -->
-                    <div class="tab-pane fade" id="context" role="tabpanel">
-                        <div class="mb-3">
-                            <label class="form-label font-audiowide">Context Definition</label>
-                            <ul id="contextDefinitionList" class="list-group mb-2">
-                                <!-- Context definitions will be added here dynamically -->
-                            </ul>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="contextDefinitionInput" placeholder="Enter context definition">
-                                <button class="btn btn-outline-secondary" type="button" onclick="addListItem('contextDefinitionList', 'context-definition', document.getElementById('contextDefinitionInput').value)">Add</button>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label font-audiowide">Integration Strategy</label>
-                            <ul id="integrationStrategyList" class="list-group mb-2">
-                                <!-- Integration strategies will be added here dynamically -->
-                            </ul>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="integrationStrategyInput" placeholder="Enter integration strategy">
-                                <button class="btn btn-outline-secondary" type="button" onclick="addListItem('integrationStrategyList', 'integration-strategy', document.getElementById('integrationStrategyInput').value)">Add</button>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label font-audiowide">User Data Handling</label>
-                            <ul id="userDataHandlingList" class="list-group mb-2">
-                                <!-- User data handling rules will be added here dynamically -->
-                            </ul>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="userDataHandlingInput" placeholder="Enter user data handling rule">
-                                <button class="btn btn-outline-secondary" type="button" onclick="addListItem('userDataHandlingList', 'user-data-handling', document.getElementById('userDataHandlingInput').value)">Add</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- System Tab -->
-                    <div class="tab-pane fade" id="system" role="tabpanel">
-                        <div class="mb-3">
-                            <label class="form-label font-audiowide">Role</label>
-                            <div class="input-group">
-                                <textarea class="form-control" id="systemContent" rows="5"></textarea>
-                                <button class="btn btn-outline-secondary" type="button" onclick="improveRolePrompt()" title="Improve prompt using AI">
-                                    <i class="bi bi-magic"></i> Improve
-                                </button>
-                            </div>
-                        </div>
-                        <hr class="my-4">
-                        <div class="mb-3">
-                            <label class="form-label font-audiowide">Behavior</label>
-                            <div class="mb-3">
-                                <label for="onTool" class="form-label font-audiowide">On Tool</label>
-                                <textarea class="form-control" id="onTool" name="onTool" rows="2" placeholder="Behavior when a tool is used..."></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="invalidCommandResponse" class="form-label font-audiowide">Invalid Command Response</label>
-                                <input type="text" class="form-control" id="invalidCommandResponse">
-                            </div>
-                            <div class="mb-3">
-                                <label for="onGreeting" class="form-label font-audiowide">On Greeting</label>
-                                <textarea class="form-control" id="onGreeting" name="onGreeting" rows="4"></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="onHelpCommand" class="form-label font-audiowide">On Help Command</label>
-                                <textarea class="form-control" id="onHelpCommand" name="onHelpCommand" rows="4"></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="unrelatedTopicResponse" class="form-label font-audiowide">Unrelated Topic Response</label>
-                                <textarea class="form-control" id="unrelatedTopicResponse" rows="2" placeholder="Response when user asks about an unrelated topic..."></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="promptVisibility" class="form-label font-audiowide">Prompt Visibility</label>
-                                <input type="text" class="form-control" id="promptVisibility" placeholder="Enter prompt visibility instructions...">
-                            </div>
-                        </div>
-                        <hr class="my-4">
-                        <div class="mb-3">
-                            <label class="form-label font-audiowide">Capabilities</label>
-                            <textarea class="form-control" id="capabilities" name="capabilities" rows="4"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Style Guidelines Tab -->
-                    <div class="tab-pane fade" id="style" role="tabpanel">
-                        <div class="mb-3">
-                            <label for="styleTone" class="form-label font-audiowide">Tone</label>
-                            <textarea class="form-control" id="styleTone" rows="2" placeholder="Describe the tone of communication..."></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="styleLevelOfDetail" class="form-label font-audiowide">Level of Detail</label>
-                            <textarea class="form-control" id="styleLevelOfDetail" rows="2" placeholder="Describe the expected level of detail..."></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label font-audiowide">Formatting Rules</label>
-                            <div id="formattingRulesList" class="list-group mb-2"></div>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="formattingRulesInput" placeholder="Enter a formatting rule">
-                                <button class="btn btn-outline-secondary" type="button" onclick="addListItem('formattingRulesList', 'formatting-rule', document.getElementById('formattingRulesInput').value)">Add</button>
-                            </div>
-                        </div>
-                        <hr class="my-4">
-                        <div class="mb-3">
-                            <label class="form-label font-audiowide">Final Notes</label>
-                            <div id="finalNotesList" class="list-group mb-2"></div>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="finalNotesInput" placeholder="Enter a final note">
-                                <button class="btn btn-outline-secondary" type="button" onclick="addListItem('finalNotesList', 'final-note', document.getElementById('finalNotesInput').value)">Add</button>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="helpText" class="form-label font-audiowide">Help Text</label>
-                            <textarea class="form-control" id="helpText" rows="3" placeholder="Enter help text for the assistant..."></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Tools Tab -->
-                    <div class="tab-pane fade" id="tools" role="tabpanel">
-                        <div class="mb-3">
-                            <div id="toolsList" class="list-group mb-2"></div>
-                            <button class="btn btn-outline-secondary" type="button" onclick="addNewTool()">Add Tool</button>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="minorChanges" checked>
+                            <label class="form-check-label" for="minorChanges">
+                                Minor changes (don't update history)
+                            </label>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <div class="d-flex align-items-center me-auto">
-                    <span id="yamlCharCount" class="me-2">0</span>
-                    <span>/</span>
-                    <span class="ms-2">8000 characters</span>
-                    <div class="progress ms-3" style="width: 100px; height: 10px;">
-                        <div id="yamlCharProgress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                <div class="d-flex justify-content-between w-100">
+                    <div>
+                        <span id="charCount" class="text-muted">0</span>
+                        <span class="text-muted">/</span>
+                        <span id="maxChars" class="text-muted">8000</span>
+                        <span class="text-muted">characters</span>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" id="saveYamlBtnFooter" class="btn btn-primary">Save</button>
                     </div>
                 </div>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="saveYamlChanges()">Save changes</button>
             </div>
         </div>
     </div>

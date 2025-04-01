@@ -1,0 +1,135 @@
+/* Estilos para las tablas de herramientas */
+.table-tools {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    background-color: #f8f9fa;
+}
+
+.table-tools thead {
+    background-color: #e9ecef;
+}
+
+.table-tools th {
+    padding: 12px 15px;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+    vertical-align: middle;
+    color: #495057;
+}
+
+.table-tools td {
+    padding: 12px 15px;
+    vertical-align: middle;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Estilos para las filas de herramientas */
+.tool-row {
+    background-color: #fff;
+    transition: background-color 0.2s;
+}
+
+.tool-row:hover {
+    background-color: #f1f3f5;
+}
+
+/* Estilo especu00edfico para la fila del prompt */
+.prompt-row {
+    border-top: none !important;
+    background-color: #f8f9fa;
+}
+
+.prompt-row td {
+    padding-top: 0;
+    border-top: none;
+}
+
+/* Estilo para el nombre de la herramienta */
+.tool-name {
+    font-weight: 600;
+    color: #495057;
+}
+
+/* Contenedor para el prompt con etiqueta */
+.prompt-container {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.prompt-container label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #495057;
+}
+
+/* Mejorar la visibilidad de los campos de input */
+.table-tools input.form-control {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+    width: 100%;
+}
+
+/* Mejorar la visibilidad de los campos de prompt */
+.table-tools textarea[data-field="prompt"] {
+    min-height: 80px;
+    resize: vertical;
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+    width: 100%;
+}
+
+/* Estilo para cuando el textarea estu00e1 en foco */
+.table-tools textarea[data-field="prompt"]:focus,
+.table-tools input.form-control:focus {
+    background-color: #fff;
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Estilo para los botones de acciu00f3n */
+.table-tools .btn-danger {
+    margin: 2px;
+    border-radius: 4px;
+}
+
+/* Estilos para los botones de agregar herramienta */
+.btn-add-tool {
+    margin-bottom: 15px;
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+.btn-add-tool:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+/* Estilos responsivos para pantallas pequeu00f1as */
+@media (max-width: 768px) {
+    .table-tools th,
+    .table-tools td {
+        padding: 8px;
+    }
+    
+    .table-tools textarea[data-field="prompt"] {
+        min-height: 60px;
+    }
+}

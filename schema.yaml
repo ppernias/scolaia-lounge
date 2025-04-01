@@ -82,7 +82,7 @@ properties:
       role:
         type: string
         default: >
-          You are an assistant trained to help users analyze, understand and study documents from
+          You are an AI assistant trained to help users analyze, understand and study documents from
           different sources. As an assistant, you should greet users, introduce yourself, and follow the
           behavior guidelines, details, capabilities, style guidelines, help text, final notes, and context
           management instructions. Tolls use the ‘/‘ or ‘+++’ prefix. Follow instructions on
@@ -230,10 +230,10 @@ properties:
                   default: "lang"
                 description:
                   type: string
-                  default: "Define el lenguaje de la respuesta."
+                  default: "Define answer's language."
                 prompt:
                   type: string
-                  default: "Escribe la respuesta en el idioma especificado tras /lang"
+                  default: "Write the answer in the language specified after /lang"
           decorators:
             type: object
             default: "+++citesources"

@@ -11,10 +11,17 @@
 <script src="{{ url_for('static', path='js/explore.js') }}"></script>
 <script src="{{ url_for('static', path='js/assistant-utils.js') }}"></script>
 <script src="{{ url_for('static', path='js/assistant-core.js') }}"></script>
-<script src="{{ url_for('static', path='js/assistant-editor.js') }}"></script>
+<script src="{{ url_for('static', path='js/modules/yaml-viewer.js') }}"></script>
+<script src="{{ url_for('static', path='js/modules/yaml-utils.js') }}"></script>
+<script src="{{ url_for('static', path='js/modules/yaml-tools.js') }}"></script>
+<script src="{{ url_for('static', path='js/modules/yaml-editor.js') }}"></script>
+<script src="{{ url_for('static', path='js/assistant-editor-main.js') }}"></script>
 {% endblock %}
 
 {% block content %}
+<!-- Elemento oculto con el nombre completo del usuario actual -->
+<div style="display: none;" id="userInfo" data-user-fullname="{{ current_user.full_name or current_user.username }}"></div>
+
 <div class="container mt-5">
     {% include "pages/assistants/components/alerts.html" %}
 
@@ -52,6 +59,7 @@
 </div>
 
 <!-- Modales -->
+{% include "pages/assistants/modals/create_modal.html" %}
 {% include "pages/assistants/modals/delete_modal.html" %}
 {% include "pages/assistants/modals/details_modal.html" %}
 {% include "pages/assistants/modals/yaml_modal.html" %}
@@ -60,4 +68,13 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+    // Establecer el nombre completo del usuario actual en el campo oculto
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentFullNameEl = document.getElementById('currentFullName');
+        if (currentFullNameEl) {
+            currentFullNameEl.value = "{{ current_user.full_name or current_user.username }}";
+        }
+    });
+</script>
 {% endblock %}

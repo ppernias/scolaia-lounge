@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Cookie
-from fastapi.responses import RedirectResponse, PlainTextResponse, HTMLResponse
+from fastapi.responses import RedirectResponse, PlainTextResponse, HTMLResponse, JSONResponse
 from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
 from ...database.database import get_db
@@ -9,6 +9,7 @@ from ...utils.filters import datetime_filter, shortdate_filter
 from ...utils.history_utils import extract_dates_from_history
 import logging
 import yaml
+import os
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -202,28 +203,32 @@ async def get_assistant_yaml(
     if not assistant:
         raise HTTPException(status_code=404, detail="Assistant not found")
     
-    # Devolver el contenido YAML como texto plano
-    return PlainTextResponse(content=assistant.yaml_content, media_type="text/yaml")
+    # Log the YAML content for debugging
+    logger.info(f"YAML content for assistant {assistant_id}:")
+    logger.info(assistant.yaml_content)
+    
+    # Parse the YAML to check if assistant_instructions exists
+    try:
+        parsed_yaml = yaml.safe_load(assistant.yaml_content)
+        logger.info(f"Parsed YAML for assistant {assistant_id}:")
+        logger.info(f"Has assistant key: {('assistant' in parsed_yaml)}")
+        logger.info(f"Has instructions key: {('instructions' in parsed_yaml.get('assistant', {}))}")
+    except Exception as e:
+        logger.error(f"Error parsing YAML: {str(e)}")
+    
+    # Devolver el contenido YAML como JSON para que sea más fácil de manejar en el frontend
+    return {"yaml_content": assistant.yaml_content}
 
-@router.post("/{assistant_id}/yaml")
+@router.put("/{assistant_id}/yaml")
 async def update_assistant_yaml(
     assistant_id: int,
+    yaml_data: dict,
     request: Request,
     db: Session = Depends(get_db)
 ):
     current_user = get_current_user(db, request.cookies.get("session"))
     if not current_user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-
-    # Obtener el contenido YAML directamente del cuerpo de la petición
-    yaml_content = await request.body()
-    yaml_content = yaml_content.decode('utf-8')
-    
-    try:
-        # Validar que el YAML es válido
-        yaml.safe_load(yaml_content)
-    except yaml.YAMLError as e:
-        raise HTTPException(status_code=400, detail=f"Invalid YAML format: {str(e)}")
 
     assistant = db.query(Assistant).filter(
         Assistant.id == assistant_id,
@@ -232,15 +237,25 @@ async def update_assistant_yaml(
     
     if not assistant:
         raise HTTPException(status_code=404, detail="Assistant not found")
-
+    
+    # Actualizar el contenido YAML
     try:
+        # Validar que el YAML es válido
+        yaml_content = yaml_data.get("yaml_content")
+        if not yaml_content:
+            raise HTTPException(status_code=400, detail="No YAML content provided")
+            
+        # Intentar cargar el YAML para validarlo
+        yaml.safe_load(yaml_content)
+        
+        # Actualizar el asistente
         assistant.yaml_content = yaml_content
         db.commit()
-        return {"status": "success", "message": "YAML updated successfully"}
+        
+        return {"message": "YAML updated successfully"}
     except Exception as e:
         db.rollback()
-        logger.error(f"Error updating assistant {assistant_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error updating assistant")
+        raise HTTPException(status_code=400, detail=f"Error updating YAML: {str(e)}")
 
 @router.get("/user/data")
 async def get_current_user_data(
@@ -278,3 +293,25 @@ async def get_defaults(
     except Exception as e:
         logger.error(f"Error getting defaults: {str(e)}")
         raise HTTPException(status_code=500, detail="Error getting defaults")
+
+@router.get("/api/schema")
+async def get_schema():
+    try:
+        # Obtener la ruta absoluta al archivo schema.yaml
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        schema_path = os.path.join(base_dir, "schema.yaml")
+        
+        logger.info(f"Cargando esquema desde: {schema_path}")
+        
+        # Abrir y leer el archivo schema.yaml
+        with open(schema_path, "r") as schema_file:
+            schema_content = schema_file.read()
+            
+        # Convertir el YAML a un diccionario Python
+        schema_dict = yaml.safe_load(schema_content)
+        
+        # Devolver el esquema como JSON
+        return JSONResponse(content=schema_dict)
+    except Exception as e:
+        logger.error(f"Error al cargar el esquema: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error al cargar el esquema: {str(e)}")

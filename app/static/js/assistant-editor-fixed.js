@@ -377,10 +377,23 @@ async function saveYamlChanges() {
 
 // Function to load tools from YAML data
 function loadTools(data) {
-    // Inicializar variables para rastrear si se han cargado herramientas
-    let hasLoadedCommands = false;
-    let hasLoadedOptions = false;
-    let hasLoadedDecorators = false;
+    console.log('Loading tools from data');
+    const toolsList = document.getElementById('toolsList');
+    if (!toolsList) {
+        console.error('toolsList element not found');
+        return;
+    }
+    
+    // Limpiar la lista de herramientas
+    toolsList.innerHTML = '';
+    
+    // Verificar si hay herramientas en el esquema
+    if (data.schema && data.schema.tools && Array.isArray(data.schema.tools)) {
+        console.log('Loading tools from schema:', data.schema.tools.length);
+        data.schema.tools.forEach(tool => {
+            addToolItem(tool.name, tool.description);
+        });
+    }
     
     // Verificar si hay herramientas en las instrucciones del asistente
     if (data.assistant_instructions && data.assistant_instructions.tools) {
@@ -388,133 +401,27 @@ function loadTools(data) {
         
         // Cargar comandos
         if (toolsObj.commands && typeof toolsObj.commands === 'object') {
-            if (Object.keys(toolsObj.commands).length > 0) {
-                hasLoadedCommands = true;
-                Object.entries(toolsObj.commands).forEach(([name, details]) => {
-                    // Extraer el nombre sin el prefijo '/'
-                    const commandName = name.startsWith('/') ? name.substring(1) : name;
-                    
-                    let description = '';
-                    if (typeof details === 'object' && details.description) {
-                        description = details.description;
-                    } else if (typeof details === 'string') {
-                        description = details;
-                    }
-                    addToolItem(commandName, description, 'command');
-                });
-            }
+            console.log('Loading commands:', Object.keys(toolsObj.commands).length);
+            Object.entries(toolsObj.commands).forEach(([name, description]) => {
+                addToolItem(name, description, 'command');
+            });
         }
         
         // Cargar opciones
         if (toolsObj.options && typeof toolsObj.options === 'object') {
-            if (Object.keys(toolsObj.options).length > 0) {
-                hasLoadedOptions = true;
-                Object.entries(toolsObj.options).forEach(([name, details]) => {
-                    // Extraer el nombre sin el prefijo '/'
-                    const optionName = name.startsWith('/') ? name.substring(1) : name;
-                    
-                    let description = '';
-                    if (typeof details === 'object' && details.description) {
-                        description = details.description;
-                    } else if (typeof details === 'string') {
-                        description = details;
-                    }
-                    addToolItem(optionName, description, 'option');
-                });
-            }
+            console.log('Loading options:', Object.keys(toolsObj.options).length);
+            Object.entries(toolsObj.options).forEach(([name, description]) => {
+                addToolItem(name, description, 'option');
+            });
         }
         
         // Cargar decoradores
         if (toolsObj.decorators && typeof toolsObj.decorators === 'object') {
-            if (Object.keys(toolsObj.decorators).length > 0) {
-                hasLoadedDecorators = true;
-                Object.entries(toolsObj.decorators).forEach(([name, details]) => {
-                    // Extraer el nombre sin el prefijo '+++'
-                    const decoratorName = name.startsWith('+++') ? name.substring(3) : name;
-                    
-                    let description = '';
-                    if (typeof details === 'object' && details.description) {
-                        description = details.description;
-                    } else if (typeof details === 'string') {
-                        description = details;
-                    }
-                    addToolItem(decoratorName, description, 'decorator');
-                });
-            }
-        }
-    }
-    
-    // Cargar herramientas predeterminadas si no se cargaron desde assistant_instructions
-    if (!hasLoadedCommands || !hasLoadedOptions || !hasLoadedDecorators) {
-        // Realizar una solicitud para obtener el schema.yaml
-        fetch('/assistants/api/schema')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('No se pudo cargar el esquema');
-                }
-                return response.json();
-            })
-            .then(schemaData => {
-                try {
-                    // Extraer la ruta correcta a las herramientas en el esquema
-                    const toolsSchema = schemaData.properties?.assistant_instructions?.properties?.tools;
-                    
-                    if (!toolsSchema) {
-                        return false;
-                    }
-                    
-                    // Extraer commands, options y decorators del esquema
-                    const commandsSchema = toolsSchema.properties?.commands;
-                    const optionsSchema = toolsSchema.properties?.options;
-                    const decoratorsSchema = toolsSchema.properties?.decorators;
-                    
-                    // Procesar commands si no se han cargado
-                    if (!hasLoadedCommands && commandsSchema && commandsSchema.additionalProperties) {
-                        const defaultCommandName = commandsSchema.default || '';
-                        
-                        // Si hay un comando predeterminado, extraer sus propiedades
-                        if (defaultCommandName && defaultCommandName.startsWith('/')) {
-                            // Extraer el nombre sin el prefijo '/'
-                            const commandName = defaultCommandName.substring(1);
-                            const description = commandsSchema.additionalProperties.properties?.description?.default || '';
-                            addToolItem(commandName, description, 'command');
-                        }
-                    }
-                    
-                    // Procesar options si no se han cargado
-                    if (!hasLoadedOptions && optionsSchema && optionsSchema.additionalProperties) {
-                        const defaultOptionName = optionsSchema.default || '';
-                        
-                        // Si hay una opción predeterminada, extraer sus propiedades
-                        if (defaultOptionName && defaultOptionName.startsWith('/')) {
-                            // Extraer el nombre sin el prefijo '/'
-                            const optionName = defaultOptionName.substring(1);
-                            const description = optionsSchema.additionalProperties.properties?.description?.default || '';
-                            addToolItem(optionName, description, 'option');
-                        }
-                    }
-                    
-                    // Procesar decorators si no se han cargado
-                    if (!hasLoadedDecorators && decoratorsSchema && decoratorsSchema.additionalProperties) {
-                        const defaultDecoratorName = decoratorsSchema.default || '';
-                        
-                        // Si hay un decorador predeterminado, extraer sus propiedades
-                        if (defaultDecoratorName && defaultDecoratorName.startsWith('+++')) {
-                            // Extraer el nombre sin el prefijo '+++'
-                            const decoratorName = defaultDecoratorName.substring(3);
-                            const description = decoratorsSchema.additionalProperties.properties?.description?.default || '';
-                            addToolItem(decoratorName, description, 'decorator');
-                        }
-                    }
-                    
-                    return true;
-                } catch (error) {
-                    return false;
-                }
-            })
-            .catch(error => {
-                return false;
+            console.log('Loading decorators:', Object.keys(toolsObj.decorators).length);
+            Object.entries(toolsObj.decorators).forEach(([name, description]) => {
+                addToolItem(name, description, 'decorator');
             });
+        }
     }
 }
 
@@ -636,21 +543,6 @@ function setValueSafely(elementId, value) {
     } else {
         console.warn(`Elemento con ID '${elementId}' no encontrado en el DOM`);
     }
-}
-
-// Función auxiliar para obtener valores de forma segura del objeto data
-function safeGetValue(path, defaultValue = '') {
-    const parts = path.split('.');
-    let current = window.yamlData || {};
-    
-    for (const part of parts) {
-        if (current === null || current === undefined || typeof current !== 'object') {
-            return defaultValue;
-        }
-        current = current[part];
-    }
-    
-    return current !== undefined && current !== null ? current : defaultValue;
 }
 
 // Limpiar listas existentes

@@ -48,7 +48,7 @@ def create_assistant_from_yaml(db: Session, user_id: int, yaml_content: str):
             format_history_entry("create", current_user.username, current_date)
         )
         
-        # Eliminar campos redundantes
+        # Eliminate redundant history fields
         yaml_data = clean_redundant_history_fields(yaml_data)
         
         # Convert back to YAML
@@ -79,10 +79,10 @@ async def create_assistant_from_template(
         raise HTTPException(status_code=401, detail="Not authenticated")
     
     try:
-        # Cargar el YAML y actualizarlo con la información del usuario actual
+        # Load the YAML and update it with the current user's information
         yaml_data = yaml.safe_load(yaml_content["yaml_content"])
         
-        # Actualizar metadatos
+        # Update metadata
         current_date = datetime.utcnow()
         if not yaml_data.get('metadata'):
             yaml_data['metadata'] = {}
@@ -91,22 +91,22 @@ async def create_assistant_from_template(
             yaml_data['metadata']['author'] = {}
         yaml_data['metadata']['author']['name'] = current_user.full_name or current_user.username
         
-        # Inicializar el historial con la entrada de creación
+        # Initialize the history with the creation entry
         if 'history' not in yaml_data['metadata']:
             yaml_data['metadata']['history'] = []
         
-        # Añadir entrada de creación al historial
+        # Add creation entry to history
         yaml_data['metadata']['history'] = [
             format_history_entry("create", current_user.full_name or current_user.username, current_date)
         ]
         
-        # Eliminar campos redundantes
+        # Eliminate redundant history fields
         yaml_data = clean_redundant_history_fields(yaml_data)
         
-        # Convertir de nuevo a YAML
+        # Convert back to YAML
         updated_yaml = yaml.dump(yaml_data, allow_unicode=True)
         
-        # Crear el asistente
+        # Create the assistant
         assistant = Assistant(
             user_id=current_user.id,
             yaml_content=updated_yaml,
@@ -136,7 +136,7 @@ async def create_assistant(
         raise HTTPException(status_code=401, detail="Not authenticated")
         
     try:
-        # El contenido YAML viene en el campo yaml_content del JSON
+        # The YAML content comes in the yaml_content field of the JSON
         yaml_str = yaml_content.get("yaml_content")
         if not yaml_str:
             raise HTTPException(status_code=400, detail="YAML content is required")
@@ -152,7 +152,7 @@ async def create_assistant(
             db.add(assistant)
             db.commit()
             
-            # Si es una nueva versión, incrementar el contador de versiones del original
+            # If it's a new version, increment the version counter of the original
             if assistant.forked_from:
                 original_assistant = db.query(Assistant).filter(Assistant.id == assistant.forked_from).first()
                 if original_assistant:
@@ -186,6 +186,7 @@ async def update_assistant(
     try:
         form_data = await request.form()
         yaml_content = form_data.get("yaml_content")
+        minor_changes = form_data.get("minor_changes", "true").lower() == "true"
         
         if not yaml_content:
             raise HTTPException(status_code=400, detail="YAML content is required")
@@ -196,8 +197,28 @@ async def update_assistant(
         except yaml.YAMLError as e:
             raise HTTPException(status_code=400, detail=f"Invalid YAML format: {str(e)}")
             
-        # Actualizar el valor de is_public según el YAML
+        # Update the is_public value according to the YAML
         is_public = yaml_data.get('metadata', {}).get('visibility', {}).get('is_public', True)
+        
+        # If not minor changes, update the history
+        if not minor_changes:
+            # Make sure metadata and history exist
+            if 'metadata' not in yaml_data:
+                yaml_data['metadata'] = {}
+            if 'history' not in yaml_data['metadata']:
+                yaml_data['metadata']['history'] = []
+                
+            # Add update entry to history
+            current_date = datetime.utcnow()
+            yaml_data['metadata']['history'].append(
+                format_history_entry("update", current_user.full_name or current_user.username, current_date)
+            )
+            
+            # Clean redundant history fields
+            yaml_data = clean_redundant_history_fields(yaml_data)
+            
+            # Update YAML content with updated history
+            yaml_content = yaml.dump(yaml_data, sort_keys=False)
         
         assistant.yaml_content = yaml_content
         assistant.updated_at = datetime.utcnow()
@@ -244,7 +265,7 @@ async def delete_assistant(
             content={"detail": "Not authenticated"}
         )
 
-    # Obtener el asistente
+    # Get the assistant
     assistant = db.query(Assistant).filter(Assistant.id == assistant_id).first()
     if not assistant:
         return JSONResponse(
@@ -253,12 +274,12 @@ async def delete_assistant(
         )
 
     try:
-        # Verificar si el asistente pertenece al usuario
+        # Check if the assistant belongs to the user
         if assistant.user_id == current_user.id:
-            # Si es el propietario, eliminar el asistente completamente
+            # If it's the owner, delete the assistant completely
             db.delete(assistant)
         else:
-            # Si no es el propietario, solo eliminar de la colección
+            # If not the owner, only delete from the collection
             delete_sql = text("""
                 DELETE FROM user_assistant_collections 
                 WHERE user_id = :user_id AND assistant_id = :assistant_id
@@ -268,7 +289,7 @@ async def delete_assistant(
                 {"user_id": current_user.id, "assistant_id": assistant_id}
             )
             
-            # Decrementar el contador de colecciones
+            # Decrement the collection counter
             assistant.in_collections = max(0, assistant.in_collections - 1)
             db.add(assistant)
 
@@ -299,38 +320,38 @@ async def clone_assistant(
         raise HTTPException(status_code=404, detail="Assistant not found")
         
     try:
-        # Cargar el YAML actual
+        # Load the current YAML
         yaml_data = yaml.safe_load(source_assistant.yaml_content)
         
-        # Obtener título y autor del asistente original
+        # Get the title and author of the original assistant
         original_title = yaml_data.get('metadata', {}).get('description', {}).get('title', 'Untitled Assistant')
         original_author = yaml_data.get('metadata', {}).get('author', {}).get('name', 'Unknown Author')
         
-        # Modificar el título y el historial
+        # Modify the title and history
         current_date = datetime.utcnow()
         
-        # Añadir "(copy)" al título
+        # Add "(copy)" to the title
         if 'metadata' in yaml_data and 'description' in yaml_data['metadata']:
             title = yaml_data['metadata']['description'].get('title', 'Untitled Assistant')
             yaml_data['metadata']['description']['title'] = f"{title} (copy)"
         
-        # Reiniciar el historial con solo la entrada de clonación
+        # Reset the history with only the cloning entry
         if 'metadata' not in yaml_data:
             yaml_data['metadata'] = {}
             
-        # Crear nueva entrada de historial con información del original
+        # Create a new history entry with information from the original
         clone_message = f"Cloned from '{original_title}' by {original_author}"
         yaml_data['metadata']['history'] = [
             format_history_entry("clone", current_user.full_name or current_user.username, current_date) + f" ({clone_message})"
         ]
         
-        # Eliminar campos redundantes
+        # Eliminate redundant history fields
         yaml_data = clean_redundant_history_fields(yaml_data)
         
-        # Convertir de vuelta a YAML
+        # Convert back to YAML
         new_yaml_content = yaml.dump(yaml_data, allow_unicode=True)
         
-        # Crear nuevo asistente
+        # Create a new assistant
         new_assistant = Assistant(
             user_id=current_user.id,
             title=yaml_data['metadata']['description'].get('title', 'Untitled Assistant'),
@@ -363,7 +384,7 @@ async def import_assistant(
         raise HTTPException(status_code=404, detail="Assistant not found")
         
     try:
-        # Cargar el YAML actual
+        # Load the current YAML
         yaml_data = yaml.safe_load(source_assistant.yaml_content)
         
         # Set import timestamp
@@ -379,13 +400,13 @@ async def import_assistant(
             format_history_entry("import", current_user.username, current_date)
         )
         
-        # Eliminar campos redundantes
+        # Eliminate redundant history fields
         yaml_data = clean_redundant_history_fields(yaml_data)
         
         # Convert back to YAML
         updated_yaml = yaml.dump(yaml_data, allow_unicode=True)
         
-        # Create new assistant
+        # Create a new assistant
         new_assistant = Assistant(
             user_id=current_user.id,
             title=source_assistant.title,
@@ -398,7 +419,7 @@ async def import_assistant(
         db.add(new_assistant)
         db.commit()
         
-        # Update original assistant's remixed_by field
+        # Update the original assistant's remixed_by field
         if source_assistant.remixed_by:
             source_assistant.remixed_by += f"{current_user.username}, "
         else:
@@ -445,40 +466,40 @@ async def update_assistant_yaml(
     if not assistant:
         raise HTTPException(status_code=404, detail="Assistant not found")
         
-    # Verificar que el usuario es el propietario
+    # Check if the user is the owner
     if assistant.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to modify this assistant")
 
     try:
-        # Obtener el contenido YAML y el título
+        # Get the YAML content and title
         yaml_content = yaml_data['yaml_content']
         parsed_yaml = yaml.safe_load(yaml_content)
         new_title = parsed_yaml.get('metadata', {}).get('description', {}).get('title', 'Untitled Assistant')
         
-        # Actualizar el valor de is_public según el YAML
+        # Update the is_public value according to the YAML
         is_public = parsed_yaml.get('metadata', {}).get('visibility', {}).get('is_public', True)
         
-        # Asegurarse de que el historial existe
+        # Make sure the history exists
         if 'metadata' not in parsed_yaml:
             parsed_yaml['metadata'] = {}
         if 'history' not in parsed_yaml['metadata']:
             parsed_yaml['metadata']['history'] = []
             
-        # Eliminar campos redundantes
+        # Eliminate redundant history fields
         parsed_yaml = clean_redundant_history_fields(parsed_yaml)
         
-        # Actualizar el YAML
+        # Update the YAML
         updated_yaml = yaml.dump(parsed_yaml, allow_unicode=True)
         
-        # Crear nuevo asistente si se solicita
+        # Create a new assistant if requested
         if yaml_data.get('create_new_version'):
-            # Añadir entrada de versión al historial
+            # Add a version entry to the history
             current_date = datetime.utcnow()
             parsed_yaml['metadata']['history'].append(
                 format_history_entry("version", current_user.username, current_date)
             )
             
-            # Actualizar el YAML con la nueva entrada de historial
+            # Update the YAML with the new history entry
             updated_yaml = yaml.dump(parsed_yaml, allow_unicode=True)
             
             new_assistant = Assistant(
@@ -492,7 +513,7 @@ async def update_assistant_yaml(
             db.add(new_assistant)
             db.commit()
             
-            # Actualizar el campo remixed_by del asistente original
+            # Update the original assistant's remixed_by field
             if assistant.remixed_by:
                 assistant.remixed_by += f"{current_user.username}, "
             else:
@@ -501,7 +522,7 @@ async def update_assistant_yaml(
             
             return {"message": "New version created successfully", "id": new_assistant.id}
         
-        # Actualizar el asistente existente
+        # Update the existing assistant
         assistant.yaml_content = updated_yaml
         assistant.title = new_title
         assistant.is_public = is_public
